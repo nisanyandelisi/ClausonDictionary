@@ -1022,21 +1022,21 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                         )}
 
                         {/* Navigation Buttons */}
-                        <div className="flex justify-center gap-4 mt-8">
+                        <div className="flex flex-row justify-center items-center gap-6 mt-8 w-full">
                             <button
                                 onClick={handlePrevPracticeWord}
                                 disabled={practiceIndex === 0}
-                                className="bg-bg-card border border-border-color px-8 py-4 rounded-lg disabled:opacity-50 hover:border-text-primary transition-colors flex items-center gap-3 text-lg"
+                                className="bg-bg-card border border-border-color px-6 py-3 rounded-lg disabled:opacity-30 hover:border-text-primary transition-colors flex items-center gap-2 text-text-primary"
                             >
                                 <i className="fas fa-arrow-left"></i>
-                                {language === 'tr' ? 'Önceki' : 'Previous'}
+                                <span>{language === 'tr' ? 'Önceki' : 'Previous'}</span>
                             </button>
                             <button
                                 onClick={handleNextPracticeWord}
                                 disabled={practiceIndex >= practiceQueue.length - 1}
-                                className="bg-accent-color text-bg-main px-8 py-4 rounded-lg font-bold hover:bg-opacity-90 transition-colors flex items-center gap-3 text-lg disabled:opacity-50"
+                                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold transition-colors flex items-center gap-2 disabled:opacity-30"
                             >
-                                {language === 'tr' ? 'Sonraki' : 'Next'}
+                                <span>{language === 'tr' ? 'Sonraki' : 'Next'}</span>
                                 <i className="fas fa-arrow-right"></i>
                             </button>
                         </div>
