@@ -59,6 +59,9 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
     const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
     const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
+    // Review Mode State
+    const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
+
     const itemsPerPage = 9;
     const allLetters = ['A', 'B', 'C', 'Ç', 'D', 'E', 'F', 'G', 'Ğ', 'H', 'I', 'İ', 'J', 'K', 'L', 'M', 'N', 'O', 'Ö', 'P', 'R', 'S', 'Ş', 'T', 'U', 'Ü', 'V', 'Y', 'Z'];
 
@@ -166,6 +169,45 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
         }
     }, [isPracticeMode]);
 
+    // Fetch random words on mount or review words
+    const fetchReviewWord = async (index) => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/word/by-offset?offset=${index}`);
+            if (response.ok) {
+                const data = await response.json();
+                setRandomWords([data]); // Tekil sonucu array içine alıyoruz
+            } else {
+                console.error('Failed to fetch review word');
+            }
+        } catch (error) {
+            console.error('Error fetching review word:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handlePracticeMode = () => {
+        setIsPracticeMode(true);
+        setSearchTerm('');
+        setSearchResults([]);
+        setCurrentReviewIndex(0);
+        fetchReviewWord(0);
+    };
+
+    const handleNextWord = () => {
+        const nextIndex = currentReviewIndex + 1;
+        setCurrentReviewIndex(nextIndex);
+        fetchReviewWord(nextIndex);
+    };
+
+    const handlePrevWord = () => {
+        if (currentReviewIndex > 0) {
+            const prevIndex = currentReviewIndex - 1;
+            setCurrentReviewIndex(prevIndex);
+            fetchReviewWord(prevIndex);
+        }
+    };
     useEffect(() => {
         if (isPracticeMode) return; // Don't search in practice mode
 
@@ -790,44 +832,54 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                             </div>
                         </div>
 
-                        <div className="flex gap-2">
-                            <div className="relative" ref={dropdownRef}>
-                                <button
-                                    className="filter-button"
-                                    onClick={() => setShowDropdown(!showDropdown)}
-                                >
-                                    <span>{getModeDisplayName(searchMode)}</span>
-                                    <i className="fas fa-chevron-down text-xs"></i>
-                                </button>
-                                {showDropdown && (
-                                    <div className="dropdown-menu">
-                                        <div className="dropdown-item" onClick={() => handleDropdownSelect('contains')}>{language === 'tr' ? 'İçerir' : 'Contains'}</div>
-                                        <div className="dropdown-item" onClick={() => handleDropdownSelect('startsWith')}>{language === 'tr' ? 'İle Başlar' : 'Starts With'}</div>
-                                        <div className="dropdown-item" onClick={() => handleDropdownSelect('endsWith')}>{language === 'tr' ? 'İle Biter' : 'Ends With'}</div>
-                                        <div className="dropdown-item" onClick={() => handleDropdownSelect('exact')}>{language === 'tr' ? 'Tam Eşleşme' : 'Exact Match'}</div>
-                                    </div>
-                                )}
-                            </div>
+                        <button
+                            onClick={handlePracticeMode}
+                            className={`filter-button ${isPracticeMode ? 'bg-accent-color text-bg-main border-accent-color' : ''}`}
+                        >
+                            <i className="fas fa-book-reader mr-2"></i>
+                            {language === 'tr' ? 'İnceleme Modu' : 'Review Mode'}
+                        </button>
 
-                            <div className="relative" ref={etymologyDropdownRef}>
-                                <button
-                                    className="filter-button"
-                                    onClick={() => setShowEtymologyDropdown(!showEtymologyDropdown)}
-                                >
-                                    <span>{getEtymologyDisplayName(etymologyFilter)}</span>
-                                    <i className="fas fa-chevron-down text-xs"></i>
-                                </button>
-                                {showEtymologyDropdown && (
-                                    <div className="dropdown-menu">
-                                        <div className="dropdown-item" onClick={() => handleEtymologySelect('all')}>{language === 'tr' ? 'Tüm Tipler' : 'All Types'}</div>
-                                        <div className="dropdown-item" onClick={() => handleEtymologySelect('Basic')}>Basic</div>
-                                        <div className="dropdown-item" onClick={() => handleEtymologySelect('D')}>D</div>
-                                        <div className="dropdown-item" onClick={() => handleEtymologySelect('F')}>F</div>
-                                        <div className="dropdown-item" onClick={() => handleEtymologySelect('VU')}>VU</div>
-                                    </div>
-                                )}
+                        {!isPracticeMode && (
+                            <div className="flex gap-2">
+                                <div className="relative" ref={dropdownRef}>
+                                    <button
+                                        className="filter-button"
+                                        onClick={() => setShowDropdown(!showDropdown)}
+                                    >
+                                        <span>{getModeDisplayName(searchMode)}</span>
+                                        <i className="fas fa-chevron-down text-xs"></i>
+                                    </button>
+                                    {showDropdown && (
+                                        <div className="dropdown-menu">
+                                            <div className="dropdown-item" onClick={() => handleDropdownSelect('contains')}>{language === 'tr' ? 'İçerir' : 'Contains'}</div>
+                                            <div className="dropdown-item" onClick={() => handleDropdownSelect('startsWith')}>{language === 'tr' ? 'İle Başlar' : 'Starts With'}</div>
+                                            <div className="dropdown-item" onClick={() => handleDropdownSelect('endsWith')}>{language === 'tr' ? 'İle Biter' : 'Ends With'}</div>
+                                            <div className="dropdown-item" onClick={() => handleDropdownSelect('exact')}>{language === 'tr' ? 'Tam Eşleşme' : 'Exact Match'}</div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="relative" ref={etymologyDropdownRef}>
+                                    <button
+                                        className="filter-button"
+                                        onClick={() => setShowEtymologyDropdown(!showEtymologyDropdown)}
+                                    >
+                                        <span>{getEtymologyDisplayName(etymologyFilter)}</span>
+                                        <i className="fas fa-chevron-down text-xs"></i>
+                                    </button>
+                                    {showEtymologyDropdown && (
+                                        <div className="dropdown-menu">
+                                            <div className="dropdown-item" onClick={() => handleEtymologySelect('all')}>{language === 'tr' ? 'Tüm Tipler' : 'All Types'}</div>
+                                            <div className="dropdown-item" onClick={() => handleEtymologySelect('Basic')}>Basic</div>
+                                            <div className="dropdown-item" onClick={() => handleEtymologySelect('D')}>D</div>
+                                            <div className="dropdown-item" onClick={() => handleEtymologySelect('F')}>F</div>
+                                            <div className="dropdown-item" onClick={() => handleEtymologySelect('VU')}>VU</div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     <div className="flex flex-wrap items-center justify-center gap-3">
@@ -1026,6 +1078,27 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                                 ))}
                             </div>
                         )}
+
+                    </div>
+                )}
+
+                {isPracticeMode && (
+                    <div className="flex justify-center gap-4 mt-8 mb-8 fade-in">
+                        <button
+                            onClick={handlePrevWord}
+                            disabled={currentReviewIndex === 0}
+                            className="bg-bg-card border border-border-color px-6 py-3 rounded-lg disabled:opacity-50 hover:border-text-primary transition-colors flex items-center gap-2"
+                        >
+                            <i className="fas fa-arrow-left"></i>
+                            {language === 'tr' ? 'Önceki' : 'Previous'}
+                        </button>
+                        <button
+                            onClick={handleNextWord}
+                            className="bg-accent-color text-bg-main px-6 py-3 rounded-lg font-bold hover:bg-opacity-90 transition-colors flex items-center gap-2"
+                        >
+                            {language === 'tr' ? 'Sonraki' : 'Next'}
+                            <i className="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 )}
             </main>

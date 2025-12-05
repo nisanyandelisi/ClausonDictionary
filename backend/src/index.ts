@@ -377,6 +377,34 @@ app.get('/api/search/random', async (c) => {
 
 // --- Raporlama Endpointleri ---
 
+// Sıralı Kelime Getir (İnceleme Modu İçin)
+app.get('/api/word/by-offset', async (c) => {
+  const offset = parseInt(c.req.query('offset') || '0');
+
+  try {
+    const result = await c.env.DB.prepare(
+      `SELECT * FROM words ORDER BY id ASC LIMIT 1 OFFSET ?`
+    ).bind(offset).first();
+
+    if (!result) {
+      return c.json({ error: 'No more words' }, 404);
+    }
+
+    // JSON parse variants
+    if (result.variants && typeof result.variants === 'string') {
+      try {
+        result.variants = JSON.parse(result.variants);
+      } catch (e) {
+        result.variants = [];
+      }
+    }
+
+    return c.json(result);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 // Rapor Gönder (POST)
 app.post('/api/reports', async (c) => {
   try {
