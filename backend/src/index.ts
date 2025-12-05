@@ -415,6 +415,34 @@ app.get('/api/word/by-offset', async (c) => {
   }
 });
 
+// Belirli aralıktaki kelimeleri getir (İnceleme Modu İçin)
+app.get('/api/words/range', async (c) => {
+  const offset = parseInt(c.req.query('offset') || '0');
+  const limit = parseInt(c.req.query('limit') || '100');
+
+  try {
+    const results = await c.env.DB.prepare(
+      `SELECT * FROM words ORDER BY id ASC LIMIT ? OFFSET ?`
+    ).bind(limit, offset).all();
+
+    // JSON parse variants for each word
+    const processedResults = results.results.map((word: any) => {
+      if (word.variants && typeof word.variants === 'string') {
+        try {
+          word.variants = JSON.parse(word.variants);
+        } catch (e) {
+          word.variants = [];
+        }
+      }
+      return word;
+    });
+
+    return c.json(processedResults);
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 // Rapor Gönder (POST)
 app.post('/api/reports', async (c) => {
   try {

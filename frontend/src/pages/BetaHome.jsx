@@ -404,14 +404,13 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
 
             for (const fileNum of practiceSelectedFiles.sort((a, b) => a - b)) {
                 const startOffset = (fileNum - 1) * WORDS_PER_FILE;
-                const endOffset = fileNum * WORDS_PER_FILE;
 
                 // API'den bu aralıktaki kelimeleri çek
-                const response = await fetch(`${API_BASE_URL}/api/search?q=baş=&limit=${WORDS_PER_FILE}&offset=${startOffset}`);
+                const response = await fetch(`${API_BASE_URL}/api/words/range?offset=${startOffset}&limit=${WORDS_PER_FILE}`);
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.results) {
-                        allWords = [...allWords, ...data.results];
+                    if (Array.isArray(data)) {
+                        allWords = [...allWords, ...data];
                     }
                 }
             }
