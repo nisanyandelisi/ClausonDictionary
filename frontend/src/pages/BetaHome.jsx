@@ -58,6 +58,12 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
     const [adminError, setAdminError] = useState('');
     const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
     const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+    const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+    const showToastMessage = (message, type = 'success') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+    };
 
     // Review Mode State (Completely separate from search)
     const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
@@ -489,22 +495,19 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(reportData),
+                body: JSON.stringify(report),
             });
 
             if (response.ok) {
-                setShowSuccessAnimation(true);
-                setTimeout(() => {
-                    setShowSuccessAnimation(false);
-                    setShowReportModal(false);
-                    setReportDescription('');
-                }, 2000);
+                setShowReportModal(false);
+                setReportDescription('');
+                showToastMessage(language === 'tr' ? 'Rapor başarıyla gönderildi' : 'Report submitted successfully');
             } else {
-                alert('Bir hata oluştu, lütfen tekrar deneyin.');
+                showToastMessage(language === 'tr' ? 'Bir hata oluştu' : 'An error occurred', 'error');
             }
         } catch (error) {
             console.error('Report error:', error);
-            alert('Sunucu hatası.');
+            showToastMessage(language === 'tr' ? 'Sunucu hatası' : 'Server error', 'error');
         }
     };
 
@@ -1040,10 +1043,11 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                             <button
                                 onClick={handleNextPracticeWord}
                                 disabled={practiceIndex >= practiceQueue.length - 1}
-                                className="rounded-lg font-bold transition-colors flex items-center gap-2 disabled:opacity-30"
+                                className="border rounded-lg transition-colors flex items-center gap-2 disabled:opacity-30"
                                 style={{
-                                    backgroundColor: '#22c55e',
-                                    color: '#ffffff',
+                                    backgroundColor: '#1e1e1e',
+                                    borderColor: '#3a3a3a',
+                                    color: '#e0e0e0',
                                     padding: '12px 24px'
                                 }}
                             >
@@ -1269,6 +1273,19 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                     </div>
                 )
             }
+
+            {/* Toast Notification */}
+            {toast.show && (
+                <div className="fixed bottom-4 right-4 z-50 fade-in">
+                    <div className={`px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 border ${toast.type === 'error'
+                            ? 'bg-red-900/90 border-red-700 text-white'
+                            : 'bg-green-900/90 border-green-700 text-white'
+                        }`}>
+                        <i className={`fas ${toast.type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}`}></i>
+                        <span className="font-medium">{toast.message}</span>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };
