@@ -1026,7 +1026,13 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                             <button
                                 onClick={handlePrevPracticeWord}
                                 disabled={practiceIndex === 0}
-                                className="bg-bg-card border border-border-color px-6 py-3 rounded-lg disabled:opacity-30 hover:border-text-primary transition-colors flex items-center gap-2 text-text-primary"
+                                className="border rounded-lg transition-colors flex items-center gap-2 disabled:opacity-30"
+                                style={{
+                                    backgroundColor: '#1e1e1e',
+                                    borderColor: '#3a3a3a',
+                                    color: '#e0e0e0',
+                                    padding: '12px 24px'
+                                }}
                             >
                                 <i className="fas fa-arrow-left"></i>
                                 <span>{language === 'tr' ? 'Önceki' : 'Previous'}</span>
@@ -1034,7 +1040,12 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                             <button
                                 onClick={handleNextPracticeWord}
                                 disabled={practiceIndex >= practiceQueue.length - 1}
-                                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold transition-colors flex items-center gap-2 disabled:opacity-30"
+                                className="rounded-lg font-bold transition-colors flex items-center gap-2 disabled:opacity-30"
+                                style={{
+                                    backgroundColor: '#22c55e',
+                                    color: '#ffffff',
+                                    padding: '12px 24px'
+                                }}
                             >
                                 <span>{language === 'tr' ? 'Sonraki' : 'Next'}</span>
                                 <i className="fas fa-arrow-right"></i>
