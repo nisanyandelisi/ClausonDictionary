@@ -266,11 +266,11 @@ app.get('/api/debug', async (c) => {
 app.get('/api/words/list', async (c) => {
   // Sadece normalized_word'leri çek, veri tasarrufu için
   const results = await c.env.DB.prepare(
-    `SELECT normalized_word FROM words`
+    `SELECT word FROM words`
   ).all();
 
   // Dizi olarak döndür ["ab", "aba", ...]
-  const wordList = results.results.map((r: any) => r.normalized_word);
+  const wordList = results.results.map((r: any) => r.word);
 
   return c.json(wordList);
 })

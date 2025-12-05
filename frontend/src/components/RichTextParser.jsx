@@ -55,10 +55,8 @@ const RichTextParser = ({ text, wordList }) => {
                 return part;
             }
 
-            const normalized = normalizeClausonWord(part);
-
-            // Check if normalized word exists in wordList
-            if (wordList && wordList.size > 0 && wordList.has(normalized)) {
+            // Case-sensitive exact match check
+            if (wordList && wordList.size > 0 && wordList.has(part)) {
                 return (
                     <span
                         key={index}
@@ -75,20 +73,25 @@ const RichTextParser = ({ text, wordList }) => {
     };
 
     // Recursive renderer
-    const renderTree = (nodes, keyPrefix = 'root', isInsideBold = false) => {
+    const renderTree = (nodes, keyPrefix = 'root', isInsideBold = false, isInsideItalic = false) => {
         return nodes.map((node, index) => {
             const key = `${keyPrefix}-${index}`;
 
             if (node.type === 'text') {
-                // Only linkify if we are inside a <b> tag
-                if (isInsideBold) {
+                // Only linkify if we are inside a <b> tag AND NOT inside an <i> tag
+                if (isInsideBold && !isInsideItalic) {
                     return <React.Fragment key={key}>{linkifyText(node.content)}</React.Fragment>;
                 }
                 return <span key={key}>{node.content}</span>;
             }
 
-            // Pass down the isInsideBold state, or set it to true if this is a 'b' node
-            const children = renderTree(node.children, key, isInsideBold || node.type === 'b');
+            // Pass down the isInsideBold and isInsideItalic state
+            const children = renderTree(
+                node.children,
+                key,
+                isInsideBold || node.type === 'b',
+                isInsideItalic || node.type === 'i'
+            );
 
             if (node.type === 'b') {
                 return <b key={key}>{children}</b>;
