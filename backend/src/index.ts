@@ -402,7 +402,7 @@ app.get('/api/reports', async (c) => {
   const secret = c.req.query('secret');
 
   // Basit bir güvenlik önlemi (Bunu daha sonra environment variable'a taşıyabiliriz)
-  if (secret !== 'clauson_admin_secret_key') {
+  if (secret !== 'parola') {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
@@ -419,7 +419,7 @@ app.get('/api/reports', async (c) => {
 // Seed Endpoint (Geçici - Veri Yükleme İçin)
 app.post('/api/seed', async (c) => {
   const secret = c.req.query('secret');
-  if (secret !== 'clauson_admin_secret_key') return c.json({ error: 'Unauthorized' }, 401);
+  if (secret !== 'parola') return c.json({ error: 'Unauthorized' }, 401);
 
   try {
     const words = await c.req.json();
@@ -453,7 +453,7 @@ app.post('/api/seed', async (c) => {
 // Tabloyu Temizle Endpoint'i
 app.post('/api/seed/clear', async (c) => {
   const secret = c.req.query('secret');
-  if (secret !== 'clauson_admin_secret_key') return c.json({ error: 'Unauthorized' }, 401);
+  if (secret !== 'parola') return c.json({ error: 'Unauthorized' }, 401);
 
   try {
     await c.env.DB.prepare("DELETE FROM words").run();

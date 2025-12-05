@@ -51,6 +51,13 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
     const [reportReason, setReportReason] = useState('meaning');
     const [reportDescription, setReportDescription] = useState('');
 
+    // Admin Panel State
+    const [showAdminModal, setShowAdminModal] = useState(false);
+    const [adminPassword, setAdminPassword] = useState('');
+    const [reportsList, setReportsList] = useState([]);
+    const [adminError, setAdminError] = useState('');
+    const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+
     const itemsPerPage = 9;
     const allLetters = ['A', 'B', 'C', 'Ç', 'D', 'E', 'F', 'G', 'Ğ', 'H', 'I', 'İ', 'J', 'K', 'L', 'M', 'N', 'O', 'Ö', 'P', 'R', 'S', 'Ş', 'T', 'U', 'Ü', 'V', 'Y', 'Z'];
 
@@ -426,8 +433,35 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
         }
     };
 
+    const fetchReports = async () => {
+        if (!adminPassword) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/reports?secret=${adminPassword}`);
+            if (response.ok) {
+                const data = await response.json();
+                setReportsList(data);
+                setIsAdminLoggedIn(true);
+                setAdminError('');
+            } else {
+                setAdminError('Hatalı şifre!');
+                setIsAdminLoggedIn(false);
+            }
+        } catch (error) {
+            console.error('Fetch reports error:', error);
+            setAdminError('Sunucu hatası.');
+        }
+    };
+
+    const handleAdminLogin = (e) => {
+        e.preventDefault();
+        fetchReports();
+    };
+
     const downloadReports = async () => {
-        const secret = prompt("Yönetici şifresini girin:");
+        // ... existing download logic if needed, or remove
+        // For now, let's keep it but use the new password logic if logged in
+        const secret = isAdminLoggedIn ? adminPassword : prompt("Yönetici şifresini girin:");
         if (!secret) return;
 
         try {
@@ -965,9 +999,94 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                 )}
             </main>
 
-            <footer className="footer-text text-center py-4">
+            <footer className="footer-text text-center py-4 relative">
                 {language === 'tr' ? 'Aristokles yaptı' : 'Made by Aristokles'}
+                <button
+                    onClick={() => setShowAdminModal(true)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs text-text-secondary opacity-30 hover:opacity-100 transition-opacity"
+                >
+                    <i className="fas fa-lock"></i>
+                </button>
             </footer>
+
+            {/* Admin Modal */}
+            {showAdminModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-bg-main border border-border-color rounded-lg w-full max-w-4xl max-h-[80vh] flex flex-col shadow-2xl">
+                        <div className="flex justify-between items-center p-4 border-b border-border-color">
+                            <h3 className="text-xl font-bold text-text-primary">Yönetici Paneli</h3>
+                            <button onClick={() => setShowAdminModal(false)} className="text-text-secondary hover:text-text-primary">
+                                <i className="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto flex-1">
+                            {!isAdminLoggedIn ? (
+                                <form onSubmit={handleAdminLogin} className="flex flex-col gap-4 max-w-sm mx-auto mt-10">
+                                    <div className="text-center mb-4">
+                                        <i className="fas fa-user-shield text-4xl text-accent-color mb-2"></i>
+                                        <p className="text-text-secondary">Lütfen yönetici şifresini girin.</p>
+                                    </div>
+                                    <input
+                                        type="password"
+                                        value={adminPassword}
+                                        onChange={(e) => setAdminPassword(e.target.value)}
+                                        placeholder="Şifre"
+                                        className="bg-bg-card border border-border-color rounded px-4 py-2 text-text-primary focus:border-accent-color outline-none"
+                                        autoFocus
+                                    />
+                                    {adminError && <p className="text-red-500 text-sm">{adminError}</p>}
+                                    <button type="submit" className="bg-accent-color text-bg-main font-bold py-2 rounded hover:bg-opacity-90 transition-colors">
+                                        Giriş Yap
+                                    </button>
+                                </form>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h4 className="text-lg font-bold">Raporlar ({reportsList.length})</h4>
+                                        <button onClick={downloadReports} className="bg-bg-card border border-border-color px-3 py-1 rounded hover:border-text-primary transition-colors text-sm">
+                                            <i className="fas fa-download mr-2"></i> İndir
+                                        </button>
+                                    </div>
+
+                                    {reportsList.length === 0 ? (
+                                        <p className="text-text-secondary text-center py-8">Henüz rapor yok.</p>
+                                    ) : (
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left border-collapse">
+                                                <thead>
+                                                    <tr className="border-b border-border-color text-text-secondary text-sm">
+                                                        <th className="p-2">Tarih</th>
+                                                        <th className="p-2">Kelime</th>
+                                                        <th className="p-2">Sayfa</th>
+                                                        <th className="p-2">Sebep</th>
+                                                        <th className="p-2">Açıklama</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {reportsList.map((report, idx) => (
+                                                        <tr key={idx} className="border-b border-border-color hover:bg-bg-card transition-colors">
+                                                            <td className="p-2 text-sm text-text-secondary whitespace-nowrap">
+                                                                {new Date(report.timestamp).toLocaleString('tr-TR')}
+                                                            </td>
+                                                            <td className="p-2 font-bold text-accent-color">{report.word}</td>
+                                                            <td className="p-2 text-sm">{report.page}</td>
+                                                            <td className="p-2 text-sm capitalize">{report.reason}</td>
+                                                            <td className="p-2 text-sm text-text-secondary max-w-xs truncate" title={report.description}>
+                                                                {report.description}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };
