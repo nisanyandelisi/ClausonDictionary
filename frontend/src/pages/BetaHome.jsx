@@ -59,8 +59,11 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
     const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
     const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
-    // Review Mode State
+    // Review Mode State (Completely separate from search)
     const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
+    const [reviewModeWord, setReviewModeWord] = useState(null);
+    const [reviewModeLoading, setReviewModeLoading] = useState(false);
+    const [totalWordCount, setTotalWordCount] = useState(0);
 
     const itemsPerPage = 9;
     const allLetters = ['A', 'B', 'C', 'Ç', 'D', 'E', 'F', 'G', 'Ğ', 'H', 'I', 'İ', 'J', 'K', 'L', 'M', 'N', 'O', 'Ö', 'P', 'R', 'S', 'Ş', 'T', 'U', 'Ü', 'V', 'Y', 'Z'];
@@ -169,43 +172,67 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
         }
     }, [isPracticeMode]);
 
-    // Fetch random words on mount or review words
+    // ============================================
+    // REVIEW MODE - Completely separate from search
+    // ============================================
     const fetchReviewWord = async (index) => {
-        setIsLoading(true);
+        setReviewModeLoading(true);
         try {
             const response = await fetch(`${API_BASE_URL}/api/word/by-offset?offset=${index}`);
             if (response.ok) {
                 const data = await response.json();
-                setRandomWords([data]); // Tekil sonucu array içine alıyoruz
+                setReviewModeWord(data); // TEK kelime, array değil!
+                setCurrentReviewIndex(index);
             } else {
                 console.error('Failed to fetch review word');
+                setReviewModeWord(null);
             }
         } catch (error) {
             console.error('Error fetching review word:', error);
+            setReviewModeWord(null);
         } finally {
-            setIsLoading(false);
+            setReviewModeLoading(false);
         }
     };
 
-    const handlePracticeMode = () => {
+    // Fetch total word count on mount
+    useEffect(() => {
+        const fetchTotalCount = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/stats`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setTotalWordCount(data.total || 8589);
+                }
+            } catch (error) {
+                setTotalWordCount(8589); // fallback
+            }
+        };
+        fetchTotalCount();
+    }, []);
+
+    const startReviewMode = () => {
         setIsPracticeMode(true);
-        setSearchTerm('');
-        setSearchResults([]);
         setCurrentReviewIndex(0);
         fetchReviewWord(0);
     };
 
-    const handleNextWord = () => {
-        const nextIndex = currentReviewIndex + 1;
-        setCurrentReviewIndex(nextIndex);
-        fetchReviewWord(nextIndex);
+    const exitReviewMode = () => {
+        setIsPracticeMode(false);
+        setReviewModeWord(null);
+        setCurrentReviewIndex(0);
     };
 
-    const handlePrevWord = () => {
+    const handleNextReviewWord = () => {
+        const nextIndex = currentReviewIndex + 1;
+        if (nextIndex < totalWordCount) {
+            fetchReviewWord(nextIndex);
+        }
+    };
+
+    const handlePrevReviewWord = () => {
         if (currentReviewIndex > 0) {
-            const prevIndex = currentReviewIndex - 1;
-            setCurrentReviewIndex(prevIndex);
-            fetchReviewWord(prevIndex);
+            fetchReviewWord(currentReviewIndex - 1);
         }
     };
     useEffect(() => {
@@ -755,14 +782,14 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                         {language === 'tr' ? '🇹🇷 Türkçe' : '🇬🇧 English'}
                     </button>
 
-                    {/* Practice Mode Button */}
+                    {/* Review Mode Button - Sol üstte tek buton */}
                     <button
-                        onClick={() => setShowPracticeModal(true)}
-                        className="absolute left-4 top-0 px-3 py-1.5 rounded-lg bg-bg-card border border-border-color text-text-primary text-sm font-medium hover:border-text-primary transition-colors flex items-center gap-2"
+                        onClick={startReviewMode}
+                        className={`absolute left-4 top-0 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors flex items-center gap-2 ${isPracticeMode ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-primary hover:border-text-primary'}`}
                         title="İnceleme Modu"
                     >
-                        <i className="fas fa-graduation-cap"></i>
-                        {language === 'tr' ? 'İnceleme Modu' : 'Review Mode'}
+                        <i className="fas fa-book-reader"></i>
+                        {language === 'tr' ? 'İncele' : 'Review'}
                     </button>
 
                     <div
@@ -832,13 +859,7 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                             </div>
                         </div>
 
-                        <button
-                            onClick={handlePracticeMode}
-                            className={`filter-button ${isPracticeMode ? 'bg-accent-color text-bg-main border-accent-color' : ''}`}
-                        >
-                            <i className="fas fa-book-reader mr-2"></i>
-                            {language === 'tr' ? 'İnceleme Modu' : 'Review Mode'}
-                        </button>
+                        {/* İnceleme Modu butonu sol üstte, burada değil! */}
 
                         {!isPracticeMode && (
                             <div className="flex gap-2">
@@ -921,37 +942,98 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
             </header >
 
             <main className="flex-1 py-8 px-4">
-                {selectedWord ? (
-                    <div className="flex flex-col items-center w-full">
-                        {isPracticeMode && (
-                            <div className="w-full max-w-3xl mb-4 flex justify-between items-center bg-bg-card p-4 rounded-lg border border-border-color">
-                                <span className="text-text-primary font-medium">
-                                    İnceleme Modu: {practiceIndex + 1} / {practiceQueue.length}
+                {/* ============================================ */}
+                {/* REVIEW MODE - Tamamen ayrı UI */}
+                {/* ============================================ */}
+                {isPracticeMode ? (
+                    <div className="max-w-3xl mx-auto">
+                        {/* Review Mode Header */}
+                        <div className="flex justify-between items-center mb-6 bg-bg-card p-4 rounded-lg border border-border-color">
+                            <div className="flex items-center gap-4">
+                                <span className="text-text-primary font-bold text-lg">
+                                    <i className="fas fa-book-reader mr-2 text-accent-color"></i>
+                                    {language === 'tr' ? 'İnceleme Modu' : 'Review Mode'}
                                 </span>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => setShowReportModal(true)}
-                                        className="px-4 py-2 bg-bg-card border border-red-500/30 text-red-500 rounded-lg hover:bg-red-500/10 font-medium transition-colors"
-                                    >
-                                        <i className="fas fa-exclamation-triangle mr-2"></i>
-                                        Bildir
-                                    </button>
-                                    <button
-                                        onClick={handlePrevPracticeWord}
-                                        disabled={practiceIndex === 0}
-                                        className="px-4 py-2 bg-bg-main border border-border-color text-text-primary rounded-lg hover:border-text-primary font-medium disabled:opacity-50 transition-colors"
-                                    >
-                                        <i className="fas fa-arrow-left"></i>
-                                    </button>
-                                    <button
-                                        onClick={handleNextPracticeWord}
-                                        className="px-6 py-2 bg-bg-card border border-border-color text-text-primary rounded-lg hover:border-text-primary font-bold shadow-sm transition-transform transform hover:scale-105"
-                                    >
-                                        Sonraki <i className="fas fa-arrow-right ml-2"></i>
-                                    </button>
+                                <span className="text-text-secondary">
+                                    {currentReviewIndex + 1} / {totalWordCount}
+                                </span>
+                            </div>
+                            <button
+                                onClick={exitReviewMode}
+                                className="px-4 py-2 bg-bg-main border border-border-color text-text-primary rounded-lg hover:border-red-500 hover:text-red-500 transition-colors"
+                            >
+                                <i className="fas fa-times mr-2"></i>
+                                {language === 'tr' ? 'Çıkış' : 'Exit'}
+                            </button>
+                        </div>
+
+                        {/* Single Word Display */}
+                        {reviewModeLoading ? (
+                            <div className="card p-12 text-center">
+                                <div className="w-12 h-12 border-4 border-accent-color border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                                <p className="text-text-secondary">{language === 'tr' ? 'Yükleniyor...' : 'Loading...'}</p>
+                            </div>
+                        ) : reviewModeWord ? (
+                            <div className="card p-8 fade-in">
+                                <div className="card-tag mb-4">
+                                    {reviewModeWord.etymology_type || 'Basic'}
                                 </div>
+                                <h2 className="text-4xl font-bold text-text-primary mb-6">
+                                    {reviewModeWord.word}
+                                </h2>
+                                <div className="text-lg text-text-secondary mb-6 leading-relaxed" dangerouslySetInnerHTML={{
+                                    __html: language === 'tr'
+                                        ? (reviewModeWord.meaning_tr || reviewModeWord.meaning || 'Anlam bulunamadı')
+                                        : (reviewModeWord.meaning || 'Meaning not found')
+                                }}></div>
+
+                                {reviewModeWord.full_entry_text && (
+                                    <div className="border-t border-border-color pt-6 mt-6">
+                                        <p className="text-sm text-text-secondary leading-relaxed" dangerouslySetInnerHTML={{
+                                            __html: language === 'tr'
+                                                ? (reviewModeWord.full_entry_text_tr || reviewModeWord.full_entry_text)
+                                                : reviewModeWord.full_entry_text
+                                        }}></p>
+                                    </div>
+                                )}
+
+                                {reviewModeWord.page && (
+                                    <div className="mt-6 text-sm text-text-secondary">
+                                        <i className="fas fa-book mr-2"></i>
+                                        Sayfa: {reviewModeWord.page}
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="card p-12 text-center">
+                                <i className="fas fa-exclamation-circle text-4xl text-text-secondary mb-4"></i>
+                                <p className="text-text-secondary">{language === 'tr' ? 'Kelime bulunamadı' : 'Word not found'}</p>
                             </div>
                         )}
+
+                        {/* Navigation Buttons */}
+                        <div className="flex justify-center gap-4 mt-8">
+                            <button
+                                onClick={handlePrevReviewWord}
+                                disabled={currentReviewIndex === 0}
+                                className="bg-bg-card border border-border-color px-8 py-4 rounded-lg disabled:opacity-50 hover:border-text-primary transition-colors flex items-center gap-3 text-lg"
+                            >
+                                <i className="fas fa-arrow-left"></i>
+                                {language === 'tr' ? 'Önceki' : 'Previous'}
+                            </button>
+                            <button
+                                onClick={handleNextReviewWord}
+                                disabled={currentReviewIndex >= totalWordCount - 1}
+                                className="bg-accent-color text-bg-main px-8 py-4 rounded-lg font-bold hover:bg-opacity-90 transition-colors flex items-center gap-3 text-lg disabled:opacity-50"
+                            >
+                                {language === 'tr' ? 'Sonraki' : 'Next'}
+                                <i className="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                ) : selectedWord ? (
+                    /* Normal Word Detail View */
+                    <div className="flex flex-col items-center w-full">
                         <WordDetail
                             word={selectedWord}
                             wordList={wordList}
@@ -959,14 +1041,8 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                         />
                     </div>
                 ) : (
+                    /* Normal Search Results / Random Words */
                     <div className="max-w-7xl mx-auto space-y-6 w-full mb-[2vh]">
-                        {practiceLoading && (
-                            <div className="text-center py-8">
-                                <div className="inline-block w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                                <p>Pratik verileri yükleniyor...</p>
-                            </div>
-                        )}
-
                         {(searchTerm || selectedLetter) ? (
                             <>
                                 <div className="flex items-center justify-between">
@@ -1078,27 +1154,6 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                                 ))}
                             </div>
                         )}
-
-                    </div>
-                )}
-
-                {isPracticeMode && (
-                    <div className="flex justify-center gap-4 mt-8 mb-8 fade-in">
-                        <button
-                            onClick={handlePrevWord}
-                            disabled={currentReviewIndex === 0}
-                            className="bg-bg-card border border-border-color px-6 py-3 rounded-lg disabled:opacity-50 hover:border-text-primary transition-colors flex items-center gap-2"
-                        >
-                            <i className="fas fa-arrow-left"></i>
-                            {language === 'tr' ? 'Önceki' : 'Previous'}
-                        </button>
-                        <button
-                            onClick={handleNextWord}
-                            className="bg-accent-color text-bg-main px-6 py-3 rounded-lg font-bold hover:bg-opacity-90 transition-colors flex items-center gap-2"
-                        >
-                            {language === 'tr' ? 'Sonraki' : 'Next'}
-                            <i className="fas fa-arrow-right"></i>
-                        </button>
                     </div>
                 )}
             </main>

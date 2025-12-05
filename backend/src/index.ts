@@ -375,6 +375,16 @@ app.get('/api/search/random', async (c) => {
 
 
 
+// --- İstatistik Endpoint'i ---
+app.get('/api/stats', async (c) => {
+  try {
+    const result = await c.env.DB.prepare('SELECT COUNT(*) as total FROM words').first();
+    return c.json({ total: result?.total || 0 });
+  } catch (e: any) {
+    return c.json({ total: 0, error: e.message });
+  }
+});
+
 // --- Raporlama Endpointleri ---
 
 // Sıralı Kelime Getir (İnceleme Modu İçin)
