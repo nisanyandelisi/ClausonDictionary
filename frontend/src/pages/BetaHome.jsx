@@ -864,18 +864,19 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                                 placeholder={language === 'tr' ? "Bir kelime veya anlam arayın..." : "Search for a word or meaning..."}
-                                className="flex-1 bg-transparent text-text-primary placeholder-text-secondary text-lg outline-none px-4 font-inter"
+                                className="flex-1 bg-transparent text-text-primary placeholder-text-secondary text-lg outline-none px-4 font-inter min-w-0"
                             />
                             <button
                                 onClick={handleRandomWord}
-                                className="p-2 text-text-primary hover:text-text-secondary transition-colors mr-1"
+                                className="p-2 text-text-primary hover:text-text-secondary transition-colors mr-1 flex-shrink-0"
                                 title="Random Word"
                             >
                                 <i className="fas fa-dice text-xl"></i>
                             </button>
                             <button
                                 onClick={handleSearch}
-                                className="p-2 text-text-primary hover:text-text-secondary transition-colors"
+                                className="p-2 text-text-primary hover:text-text-secondary transition-colors flex-shrink-0"
+                                title="Search"
                             >
                                 <i className="fas fa-search text-xl"></i>
                             </button>
