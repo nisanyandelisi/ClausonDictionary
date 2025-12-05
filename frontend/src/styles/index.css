@@ -1,0 +1,192 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Akademik Tasarım - Global Styles */
+
+@layer base {
+  body {
+    @apply bg-parchment-50 text-ink-900 font-serif;
+    @apply antialiased;
+  }
+
+  /* Seçim rengi */
+  ::selection {
+    @apply bg-maroon-600 text-white;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-3;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-parchment-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-ink-700 rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-ink-900;
+  }
+}
+
+@layer components {
+  /* Buton stilleri */
+  .btn {
+    @apply px-4 py-2 rounded font-sans text-sm font-medium;
+    @apply transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply bg-maroon-600 text-white;
+    @apply hover:bg-maroon-700;
+    @apply focus:ring-maroon-500;
+  }
+
+  .btn-secondary {
+    @apply bg-ink-700 text-white;
+    @apply hover:bg-ink-800;
+    @apply focus:ring-ink-600;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-ink-700;
+    @apply hover:bg-parchment-200;
+    @apply focus:ring-ink-500;
+  }
+
+  /* Input stilleri */
+  .input {
+    @apply w-full px-4 py-3 rounded-lg;
+    @apply bg-white border-2 border-parchment-300;
+    @apply text-ink-900 placeholder-ink-700/50;
+    @apply font-sans text-base;
+    @apply transition-all duration-200;
+    @apply focus:outline-none focus:border-maroon-600 focus:ring-2 focus:ring-maroon-500/20;
+  }
+
+  /* Kart stilleri */
+  .card {
+    @apply bg-white rounded-lg shadow-md;
+    @apply border border-parchment-300;
+    @apply transition-all duration-200;
+  }
+
+  .card:hover {
+    @apply shadow-lg border-parchment-400;
+  }
+
+  /* Badge/rozet stilleri */
+  .badge {
+    @apply inline-block px-3 py-1 rounded-full text-xs font-mono font-bold uppercase;
+    @apply tracking-wider;
+  }
+
+  .badge-basic {
+    @apply bg-blue-100 text-blue-800;
+  }
+
+  .badge-d {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .badge-f {
+    @apply bg-purple-100 text-purple-800;
+  }
+
+  .badge-vu {
+    @apply bg-orange-100 text-orange-800;
+  }
+
+  .badge-default {
+    @apply bg-gray-100 text-gray-800;
+  }
+
+  /* Bölücü çizgi */
+  .divider {
+    @apply border-t-2 border-parchment-300 my-6;
+  }
+
+  /* Link stilleri */
+  .link {
+    @apply text-maroon-600 underline decoration-1 underline-offset-2;
+    @apply hover:text-maroon-700 hover:decoration-2;
+    @apply transition-all duration-200;
+  }
+
+  /* Başlık stilleri */
+  .heading-1 {
+    @apply text-4xl font-bold text-ink-900 mb-4;
+  }
+
+  .heading-2 {
+    @apply text-3xl font-bold text-ink-900 mb-3;
+  }
+
+  .heading-3 {
+    @apply text-2xl font-semibold text-ink-800 mb-2;
+  }
+
+  /* Scroll shadow effect */
+  .scroll-shadow {
+    @apply relative overflow-auto;
+  }
+
+  .scroll-shadow::before,
+  .scroll-shadow::after {
+    @apply absolute left-0 right-0 h-8 pointer-events-none z-10;
+    content: '';
+  }
+
+  .scroll-shadow::before {
+    @apply top-0;
+    background: linear-gradient(to bottom, rgb(253, 252, 249), transparent);
+  }
+
+  .scroll-shadow::after {
+    @apply bottom-0;
+    background: linear-gradient(to top, rgb(253, 252, 249), transparent);
+  }
+}
+
+@layer utilities {
+  /* Özel utility classlar */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .hyphens-auto {
+    hyphens: auto;
+  }
+}
+
+/* Animasyonlar */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Print stilleri */
+@media print {
+  body {
+    @apply bg-white text-black;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}

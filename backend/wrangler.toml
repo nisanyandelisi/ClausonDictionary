@@ -1,0 +1,9 @@
+name = "clauson-sozluk-backend"
+main = "src/index.ts"
+compatibility_date = "2024-11-30"
+
+# D1 Veritabanı Bağlantısı
+[[d1_databases]]
+binding = "DB"
+database_name = "clauson-db"
+database_id = "d2520935-b087-4167-9f89-31a5229a08e7"

@@ -1,0 +1,975 @@
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { normalizeClausonWord } from '../utils/textUtils';
+import WordDetail from './WordDetail';
+
+// API Base URL for backend
+const API_BASE_URL = import.meta.env.VITE_API_URL ||
+    (import.meta.env.PROD
+        ? 'https://clauson-sozluk-backend.clausondictionary.workers.dev'
+        : 'http://localhost:8787');
+
+const FILE_MAPPING = {
+    1: "PROCESSED_1. A-EGE.json",
+    2: "PROCESSED_2. EGE-ARD.json",
+    3: "PROCESSED_3. ARD-BDD.json",
+    4: "PROCESSED_4. BDĞ-CCĞ.json",
+    5: "PROCESSED_5. CD-DLM.json",
+    6: "PROCESSED_6. DLS-ĞDĞ.json",
+    7: "PROCESSED_7. ĞDL-GCY.json",
+    8: "PROCESSED_8. GDE-SDĞ.json",
+    9: "PROCESSED_9. SDM-YĞĞ.json",
+    10: "PROCESSED_10. YĞL-ZR.json"
+};
+
+const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchScope, setSearchScope] = useState('word');
+    const [searchMode, setSearchMode] = useState('contains');
+    const [etymologyFilter, setEtymologyFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [selectedLetter, setSelectedLetter] = useState('');
+    const [showEtymologyDropdown, setShowEtymologyDropdown] = useState(false);
+    const etymologyDropdownRef = useRef(null);
+
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [showAllAlphabet, setShowAllAlphabet] = useState(false);
+    const [visibleLetterCount, setVisibleLetterCount] = useState(15);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    // Practice Mode State
+    const [showPracticeModal, setShowPracticeModal] = useState(false);
+    const [practiceSelectedFiles, setPracticeSelectedFiles] = useState([]);
+    const [isPracticeMode, setIsPracticeMode] = useState(false);
+    const [practiceQueue, setPracticeQueue] = useState([]);
+    const [practiceIndex, setPracticeIndex] = useState(0);
+    const [seenWords, setSeenWords] = useState(new Set());
+    const [practiceLoading, setPracticeLoading] = useState(false);
+
+    // Reporting State
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportReason, setReportReason] = useState('meaning');
+    const [reportDescription, setReportDescription] = useState('');
+
+    const itemsPerPage = 9;
+    const allLetters = ['A', 'B', 'C', 'Ç', 'D', 'E', 'F', 'G', 'Ğ', 'H', 'I', 'İ', 'J', 'K', 'L', 'M', 'N', 'O', 'Ö', 'P', 'R', 'S', 'Ş', 'T', 'U', 'Ü', 'V', 'Y', 'Z'];
+
+    // Load seen words from local storage
+    useEffect(() => {
+        const storedSeen = localStorage.getItem('clauson_seen_words');
+        if (storedSeen) {
+            setSeenWords(new Set(JSON.parse(storedSeen)));
+        }
+    }, []);
+
+    const saveSeenWord = (word) => {
+        const newSeen = new Set(seenWords);
+        newSeen.add(word);
+        setSeenWords(newSeen);
+        localStorage.setItem('clauson_seen_words', JSON.stringify([...newSeen]));
+    };
+
+    // Keyboard Navigation for Practice Mode
+    useEffect(() => {
+        if (!isPracticeMode) return;
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'ArrowRight') {
+                handleNextPracticeWord();
+            } else if (e.key === 'ArrowLeft') {
+                handlePrevPracticeWord();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isPracticeMode, practiceIndex, practiceQueue]);
+
+    // Responsive alphabet count
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 640) {
+                setVisibleLetterCount(7);
+            } else if (window.innerWidth < 768) {
+                setVisibleLetterCount(9);
+            } else if (window.innerWidth < 1024) {
+                setVisibleLetterCount(11);
+            } else {
+                setVisibleLetterCount(15);
+            }
+        };
+
+        handleResize(); // Initial check
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Reset search when a word is selected via URL
+    useEffect(() => {
+        if (selectedWord) {
+            // Optional: Clear search term or keep it? 
+        }
+    }, [selectedWord]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
+            if (etymologyDropdownRef.current && !etymologyDropdownRef.current.contains(event.target)) {
+                setShowEtymologyDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const [searchResults, setSearchResults] = useState([]);
+    const [totalResults, setTotalResults] = useState(0);
+    const [isSearching, setIsSearching] = useState(false);
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+    const [randomWords, setRandomWords] = useState([]);
+
+    // Debounce search term
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    // Fetch random words on mount
+    useEffect(() => {
+        const fetchRandomWords = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/search/random?count=3`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setRandomWords(data);
+                }
+            } catch (error) {
+                console.error('Error fetching random words:', error);
+            }
+        };
+
+        if (!selectedWord && !searchTerm && !selectedLetter && !isPracticeMode) {
+            fetchRandomWords();
+        }
+    }, [isPracticeMode]);
+
+    useEffect(() => {
+        if (isPracticeMode) return; // Don't search in practice mode
+
+        const fetchResults = async () => {
+            setIsSearching(true);
+            try {
+                let query = debouncedSearchTerm;
+
+                // Add prefix based on searchMode if not already present
+                if (query && !query.includes('=')) {
+                    if (searchMode === 'startsWith') query = `baş=${query}`;
+                    else if (searchMode === 'endsWith') query = `son=${query}`;
+                    else if (searchMode === 'exact') query = `tam=${query}`;
+                }
+
+                // If no query but letter selected
+                if (!query && selectedLetter) {
+                    query = `baş=${selectedLetter}`;
+                }
+
+                // If selected word (detail view), fetch exact word
+                if (selectedWord) {
+                    query = `tam=${selectedWord}`;
+                }
+
+                if (!query) {
+                    setSearchResults([]);
+                    setTotalResults(0);
+                    setIsSearching(false);
+                    return;
+                }
+
+                const url = `${API_BASE_URL}/api/search?q=${encodeURIComponent(query)}&limit=${itemsPerPage}&offset=${(currentPage - 1) * itemsPerPage}&scope=${searchScope}${etymologyFilter !== 'all' ? `&etymology=${etymologyFilter}` : ''}`;
+                console.log(`[BetaHome.jsx] Fetching: ${url}`);
+                const response = await fetch(url);
+
+                if (!response.ok) throw new Error('Search failed');
+                const data = await response.json();
+
+                setSearchResults(data.results);
+                setTotalResults(data.total);
+            } catch (error) {
+                console.error('Error fetching search results:', error);
+                // Fallback or error state
+            } finally {
+                setIsSearching(false);
+            }
+        };
+
+        fetchResults();
+    }, [debouncedSearchTerm, selectedLetter, currentPage, selectedWord, searchScope, searchMode, etymologyFilter, isPracticeMode]);
+
+    // Use searchResults instead of filteredResults
+    const currentResults = searchResults;
+    const totalPages = Math.ceil(totalResults / itemsPerPage);
+
+    // No slicing needed as backend returns paginated results
+    // const startIndex = (currentPage - 1) * itemsPerPage;
+    // const currentResults = filteredResults.slice(startIndex, startIndex + itemsPerPage);
+
+    const handleLetterClick = (letter) => {
+        const newLetter = letter === selectedLetter ? '' : letter;
+        console.log(`[BetaHome.jsx] Letter button clicked. New letter: "${newLetter}"`);
+        setSelectedLetter(newLetter);
+        setCurrentPage(1);
+        setSearchTerm('');
+        setIsPracticeMode(false); // Exit practice mode
+        if (selectedWord) {
+            window.location.hash = '#/';
+        }
+    };
+
+    const handleSearch = () => {
+        console.log(`[BetaHome.jsx] Search button clicked. Term: "${searchTerm}"`);
+        setSelectedLetter('');
+        setCurrentPage(1);
+        setIsPracticeMode(false); // Exit practice mode
+        if (selectedWord) {
+            window.location.hash = '#/';
+        }
+    };
+
+    const handleResultClick = (entry) => {
+        console.log(`[BetaHome.jsx] Result card clicked. Navigating to word: "${entry.word}"`);
+        window.location.hash = `#/kelime/${encodeURIComponent(entry.word)}`;
+    };
+
+    const handleDropdownSelect = (mode) => {
+        console.log(`[BetaHome.jsx] Search mode changed to: "${mode}"`);
+        setSearchMode(mode);
+        setShowDropdown(false);
+    };
+
+    const getModeDisplayName = (mode) => {
+        const labels = {
+            contains: language === 'tr' ? 'İçerir' : 'Contains',
+            startsWith: language === 'tr' ? 'İle Başlar' : 'Starts With',
+            endsWith: language === 'tr' ? 'İle Biter' : 'Ends With',
+            exact: language === 'tr' ? 'Tam Eşleşme' : 'Exact Match'
+        };
+        return labels[mode] || labels.contains;
+    };
+
+    const handlePlusClick = () => {
+        setShowAllAlphabet(!showAllAlphabet);
+    };
+
+    const getPaginationNumbers = () => {
+        const maxButtons = 6;
+        const maxPagesToShow = Math.min(totalPages, maxButtons);
+        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+        if (endPage - startPage + 1 < maxPagesToShow) {
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+
+        return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+    };
+
+    const handleLogoClick = () => {
+        window.location.hash = '#/';
+        setSearchTerm('');
+        setSelectedLetter('');
+        setCurrentPage(1);
+        setIsPracticeMode(false);
+    };
+
+    const handleRandomWord = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/search/random`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.word) {
+                    console.log(`[BetaHome.jsx] Random word selected: "${data.word}"`);
+                    window.location.hash = `#/kelime/${encodeURIComponent(data.word)}`;
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching random word:', error);
+        }
+    };
+
+    // Practice Mode Handlers
+    const togglePracticeFile = (fileNum) => {
+        setPracticeSelectedFiles(prev =>
+            prev.includes(fileNum)
+                ? prev.filter(n => n !== fileNum)
+                : [...prev, fileNum]
+        );
+    };
+
+    const startPractice = async () => {
+        if (practiceSelectedFiles.length === 0) {
+            alert("Lütfen en az bir dosya seçin.");
+            return;
+        }
+
+        setPracticeLoading(true);
+        setShowPracticeModal(false);
+
+        try {
+            let allWords = [];
+            for (const fileNum of practiceSelectedFiles) {
+                const fileName = FILE_MAPPING[fileNum];
+                const response = await fetch(`./data/${fileName}`);
+                if (!response.ok) throw new Error(`Failed to load ${fileName}`);
+                const data = await response.json();
+                allWords = [...allWords, ...data];
+            }
+
+            // Filter out seen words
+            const unseenWords = allWords.filter(w => !seenWords.has(w.word));
+
+            if (unseenWords.length === 0) {
+                alert("Seçilen dosyalardaki tüm kelimeler zaten çalışılmış!");
+                setPracticeLoading(false);
+                return;
+            }
+
+            // Sort by page number (or index if page is missing)
+            const sorted = [...unseenWords].sort((a, b) => {
+                const pageA = parseInt(a.page) || 0;
+                const pageB = parseInt(b.page) || 0;
+                return pageA - pageB;
+            });
+
+            setPracticeQueue(sorted);
+            setPracticeIndex(0);
+            setIsPracticeMode(true);
+
+            // Navigate to the first word
+            window.location.hash = `#/kelime/${encodeURIComponent(sorted[0].word)}`;
+
+        } catch (error) {
+            console.error(error);
+            alert("Bir hata oluştu: " + error.message);
+        } finally {
+            setPracticeLoading(false);
+        }
+    };
+
+    const handleNextPracticeWord = () => {
+        if (practiceIndex < practiceQueue.length) {
+            const currentWord = practiceQueue[practiceIndex];
+            saveSeenWord(currentWord.word); // Mark as seen
+        }
+
+        if (practiceIndex + 1 >= practiceQueue.length) {
+            alert("Tebrikler! Seçilen tüm kelimeleri tamamladınız.");
+            setIsPracticeMode(false);
+            window.location.hash = '#/';
+        } else {
+            const nextIndex = practiceIndex + 1;
+            setPracticeIndex(nextIndex);
+            window.location.hash = `#/kelime/${encodeURIComponent(practiceQueue[nextIndex].word)}`;
+        }
+    };
+
+    const handlePrevPracticeWord = () => {
+        if (practiceIndex > 0) {
+            const prevIndex = practiceIndex - 1;
+            setPracticeIndex(prevIndex);
+            window.location.hash = `#/kelime/${encodeURIComponent(practiceQueue[prevIndex].word)}`;
+        }
+    };
+
+    const resetPracticeProgress = () => {
+        if (confirm("Tüm ilerlemeniz silinecek. Emin misiniz?")) {
+            localStorage.removeItem('clauson_seen_words');
+            setSeenWords(new Set());
+            alert("İlerleme sıfırlandı.");
+        }
+    };
+
+    // Reporting Handlers
+    const handleReportSubmit = async () => {
+        const currentWord = practiceQueue[practiceIndex];
+        const report = {
+            word: currentWord.word,
+            page: currentWord.page || 'N/A',
+            reason: reportReason,
+            description: reportDescription,
+            timestamp: new Date().toISOString()
+        };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/reports`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(report),
+            });
+
+            if (response.ok) {
+                alert("Bildiriminiz sunucuya kaydedildi.");
+                setShowReportModal(false);
+                setReportDescription('');
+            } else {
+                alert("Bildirim gönderilirken bir hata oluştu.");
+            }
+        } catch (error) {
+            console.error('Report error:', error);
+            alert("Sunucu hatası.");
+        }
+    };
+
+    const downloadReports = async () => {
+        const secret = prompt("Yönetici şifresini girin:");
+        if (!secret) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/reports?secret=${secret}`);
+            if (response.ok) {
+                const reports = await response.json();
+                const blob = new Blob([JSON.stringify(reports, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'clauson_reports_server.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } else {
+                alert("Yetkisiz erişim veya hata.");
+            }
+        } catch (error) {
+            console.error('Download error:', error);
+            alert("Raporlar indirilemedi.");
+        }
+    };
+
+    const visibleLetters = allLetters.slice(0, visibleLetterCount);
+    const hiddenLetters = allLetters.slice(visibleLetterCount);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen w-full">
+                <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-16 h-16 border-4 border-text-primary border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
+                    <h2 className="text-xl font-medium">{language === 'tr' ? 'Sözlük Yükleniyor...' : 'Loading Dictionary...'}</h2>
+                    <p className="text-text-secondary text-sm mt-2">{language === 'tr' ? 'Lütfen bekleyin...' : 'Please wait...'}</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Dynamic classes based on whether a word is selected
+    const headerClass = selectedWord
+        ? "py-2 bg-bg-main border-b border-border-color mb-[2vh]"
+        : "py-2 md:py-12 bg-bg-main mb-[2vh]";
+
+
+
+    const headerContainerClass = selectedWord
+        ? "max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+        : "text-center";
+
+    const searchBarContainerClass = selectedWord
+        ? "flex-1 flex justify-center w-full"
+        : "max-w-3xl mx-auto px-4 mb-2 md:mb-8";
+
+    const searchBarInnerClass = selectedWord
+        ? "w-[90%] md:w-full max-w-2xl"
+        : "w-full";
+
+    const handleEtymologySelect = (type) => {
+        console.log(`[BetaHome.jsx] Etymology filter changed to: "${type}"`);
+        setEtymologyFilter(type);
+        setShowEtymologyDropdown(false);
+    };
+
+    const getEtymologyDisplayName = (type) => {
+        return type === 'all' ? (language === 'tr' ? 'Tüm Tipler' : 'All Types') : type;
+    };
+
+    return (
+        <div className="min-h-screen bg-bg-main flex flex-col">
+            {/* Practice Mode Modal */}
+            {showPracticeModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 fade-in">
+                    <div className="bg-bg-card border border-border-color rounded-lg shadow-xl max-w-md w-full p-6 text-text-primary">
+                        <h2 className="text-xl font-bold mb-4">İnceleme Modu Ayarları</h2>
+                        <div className="mb-4 max-h-60 overflow-y-auto">
+                            <p className="mb-2 text-sm text-text-secondary">Dahil edilecek dosyaları seçin:</p>
+                            <div className="grid grid-cols-1 gap-2">
+                                {Object.keys(FILE_MAPPING).map(num => (
+                                    <label key={num} className="flex items-center space-x-2 cursor-pointer hover:bg-bg-card-hover p-2 rounded border border-border-color transition-colors">
+                                        <input
+                                            type="checkbox"
+                                            checked={practiceSelectedFiles.includes(parseInt(num))}
+                                            onChange={() => togglePracticeFile(parseInt(num))}
+                                            className="form-checkbox h-4 w-4 text-text-primary bg-bg-main border-border-color rounded focus:ring-0"
+                                        />
+                                        <span className="text-sm">Bölüm {num}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="flex justify-between items-center mt-6">
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={resetPracticeProgress}
+                                    className="text-red-500 text-sm hover:underline"
+                                >
+                                    Sıfırla
+                                </button>
+                                <button
+                                    onClick={downloadReports}
+                                    className="text-text-secondary text-sm hover:text-text-primary hover:underline"
+                                >
+                                    Raporları İndir
+                                </button>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowPracticeModal(false)}
+                                    className="px-4 py-2 text-text-secondary hover:bg-bg-card-hover rounded transition-colors"
+                                >
+                                    İptal
+                                </button>
+                                <button
+                                    onClick={startPractice}
+                                    className="px-4 py-2 bg-bg-card border border-border-color text-text-primary rounded hover:border-text-primary font-medium transition-colors"
+                                >
+                                    Başla
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Report Modal */}
+            {showReportModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 fade-in">
+                    <div className="bg-bg-card border border-border-color rounded-lg shadow-xl max-w-md w-full p-6 text-text-primary">
+                        <h2 className="text-xl font-bold mb-4">Hata Bildir</h2>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">Sebep</label>
+                            <select
+                                value={reportReason}
+                                onChange={(e) => setReportReason(e.target.value)}
+                                className="w-full bg-bg-main border border-border-color rounded p-2 text-text-primary outline-none focus:border-text-primary"
+                            >
+                                <option value="meaning">Anlam Hatası</option>
+                                <option value="entry">Giriş/Yazım Hatası</option>
+                                <option value="other">Diğer</option>
+                            </select>
+                        </div>
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">Açıklama</label>
+                            <textarea
+                                value={reportDescription}
+                                onChange={(e) => setReportDescription(e.target.value)}
+                                className="w-full bg-bg-main border border-border-color rounded p-2 text-text-primary outline-none focus:border-text-primary h-24 resize-none"
+                                placeholder="Hata detaylarını buraya yazın..."
+                            />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => setShowReportModal(false)}
+                                className="px-4 py-2 text-text-secondary hover:bg-bg-card-hover rounded transition-colors"
+                            >
+                                İptal
+                            </button>
+                            <button
+                                onClick={handleReportSubmit}
+                                className="px-4 py-2 bg-bg-card border border-border-color text-text-primary rounded hover:border-text-primary font-medium transition-colors"
+                            >
+                                Gönder
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <header className={headerClass}>
+                {/* Mobile Header Row */}
+                <div className="flex md:hidden justify-between items-center px-4 py-3 mb-2">
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={handleLogoClick}>
+                        <img src="./logo.png" alt="Clauson" className="h-10 w-auto" />
+                        <div className="flex flex-col">
+                            <span className="text-[1.35rem] font-bold text-text-primary leading-none font-inter">Clauson</span>
+                            <span className="text-[13px] text-text-secondary font-inter">{language === 'tr' ? 'Türkçe Etimoloji Sözlüğü' : 'Turkish Etymological Dictionary'}</span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {/* Language Toggle */}
+                        <button
+                            onClick={() => setLanguage(language === 'tr' ? 'en' : 'tr')}
+                            className="px-2 py-1 rounded-md bg-bg-card border border-border-color text-sm font-medium"
+                            title={language === 'tr' ? 'Switch to English' : 'Türkçe\'ye geç'}
+                        >
+                            {language === 'tr' ? '🇹🇷 TR' : '🇬🇧 EN'}
+                        </button>
+                        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-text-primary">
+                            <i className="fas fa-bars text-2xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Mobile Menu */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden px-4 mb-4 fade-in">
+                        <button
+                            onClick={() => {
+                                setShowPracticeModal(true);
+                                setMobileMenuOpen(false);
+                            }}
+                            className="w-full py-2 bg-bg-card border border-border-color text-text-primary rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-bg-card-hover transition-colors"
+                        >
+                            <i className="fas fa-graduation-cap"></i>
+                            {language === 'tr' ? 'İnceleme Modu' : 'Review Mode'}
+                        </button>
+                    </div>
+                )}
+
+                {/* Desktop Header Row */}
+                <div className={`hidden md:flex justify-center items-center mb-8 ${selectedWord ? 'mt-[10px]' : ''} relative`}>
+                    {/* Language Toggle - Desktop */}
+                    <button
+                        onClick={() => setLanguage(language === 'tr' ? 'en' : 'tr')}
+                        className="absolute right-4 top-0 px-3 py-1.5 rounded-lg bg-bg-card border border-border-color text-sm font-medium hover:border-text-primary transition-colors"
+                        title={language === 'tr' ? 'Switch to English' : 'Türkçe\'ye geç'}
+                    >
+                        {language === 'tr' ? '🇹🇷 Türkçe' : '🇬🇧 English'}
+                    </button>
+
+                    {/* Practice Mode Button */}
+                    <button
+                        onClick={() => setShowPracticeModal(true)}
+                        className="absolute left-4 top-0 px-3 py-1.5 rounded-lg bg-bg-card border border-border-color text-text-primary text-sm font-medium hover:border-text-primary transition-colors flex items-center gap-2"
+                        title="İnceleme Modu"
+                    >
+                        <i className="fas fa-graduation-cap"></i>
+                        {language === 'tr' ? 'İnceleme Modu' : 'Review Mode'}
+                    </button>
+
+                    <div
+                        onClick={handleLogoClick}
+                        className={`flex items-center cursor-pointer ${selectedWord ? '' : 'flex-col justify-center'}`}
+                    >
+                        <img
+                            src="./logo.png"
+                            alt="Clauson Logo"
+                            className={`${selectedWord ? 'h-12' : 'h-32'} w-auto transition-all duration-300`}
+                        />
+
+                        {!selectedWord && (
+                            <div className="text-center mt-4">
+                                <h1 className="text-5xl font-bold text-text-primary mb-2 font-inter">Clauson</h1>
+                                <p className="text-lg text-text-secondary font-inter">{language === 'tr' ? 'Türkçe Etimoloji Sözlüğü' : 'Turkish Etymological Dictionary'}</p>
+                            </div>
+                        )}
+
+                        {selectedWord && (
+                            <div className="ml-4 text-left">
+                                <h1 className="text-xl font-bold text-text-primary font-inter leading-tight">Clauson</h1>
+                                <p className="text-sm text-text-secondary font-inter">{language === 'tr' ? 'Türkçe Etimoloji Sözlüğü' : 'Turkish Etymological Dictionary'}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className={searchBarContainerClass}>
+                    <div className={`search-bar ${selectedWord ? 'p-[0.3rem]' : 'p-[0.3rem] md:p-[0.9rem]'} ${searchBarInnerClass} mx-auto`}>
+                        <div className="flex items-center justify-center">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                                placeholder={language === 'tr' ? "Bir kelime veya anlam arayın..." : "Search for a word or meaning..."}
+                                className="flex-1 bg-transparent text-text-primary placeholder-text-secondary text-lg outline-none px-4 font-inter"
+                            />
+                            <button
+                                onClick={handleRandomWord}
+                                className="p-2 text-text-primary hover:text-text-secondary transition-colors mr-1"
+                                title="Random Word"
+                            >
+                                <i className="fas fa-dice text-xl"></i>
+                            </button>
+                            <button
+                                onClick={handleSearch}
+                                className="p-2 text-text-primary hover:text-text-secondary transition-colors"
+                            >
+                                <i className="fas fa-search text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Filters - Visible on Desktop, Hidden on Mobile (unless menu open) */}
+                <div className={`flex flex-col items-center justify-center gap-4 mt-4 px-4 fade-in ${mobileMenuOpen ? 'block' : 'hidden md:flex'}`}>
+                    <div className="flex flex-wrap items-center justify-center gap-4">
+                        <div className="toggle-control">
+                            <div className={`toggle-option ${searchScope === 'word' ? 'active' : ''}`} onClick={() => setSearchScope('word')}>
+                                {language === 'tr' ? 'Kelime' : 'Word'}
+                            </div>
+                            <div className={`toggle-option ${searchScope === 'meaning' ? 'active' : ''}`} onClick={() => setSearchScope('meaning')}>
+                                {language === 'tr' ? 'Açıklama' : 'Meaning'}
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <div className="relative" ref={dropdownRef}>
+                                <button
+                                    className="filter-button"
+                                    onClick={() => setShowDropdown(!showDropdown)}
+                                >
+                                    <span>{getModeDisplayName(searchMode)}</span>
+                                    <i className="fas fa-chevron-down text-xs"></i>
+                                </button>
+                                {showDropdown && (
+                                    <div className="dropdown-menu">
+                                        <div className="dropdown-item" onClick={() => handleDropdownSelect('contains')}>{language === 'tr' ? 'İçerir' : 'Contains'}</div>
+                                        <div className="dropdown-item" onClick={() => handleDropdownSelect('startsWith')}>{language === 'tr' ? 'İle Başlar' : 'Starts With'}</div>
+                                        <div className="dropdown-item" onClick={() => handleDropdownSelect('endsWith')}>{language === 'tr' ? 'İle Biter' : 'Ends With'}</div>
+                                        <div className="dropdown-item" onClick={() => handleDropdownSelect('exact')}>{language === 'tr' ? 'Tam Eşleşme' : 'Exact Match'}</div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="relative" ref={etymologyDropdownRef}>
+                                <button
+                                    className="filter-button"
+                                    onClick={() => setShowEtymologyDropdown(!showEtymologyDropdown)}
+                                >
+                                    <span>{getEtymologyDisplayName(etymologyFilter)}</span>
+                                    <i className="fas fa-chevron-down text-xs"></i>
+                                </button>
+                                {showEtymologyDropdown && (
+                                    <div className="dropdown-menu">
+                                        <div className="dropdown-item" onClick={() => handleEtymologySelect('all')}>{language === 'tr' ? 'Tüm Tipler' : 'All Types'}</div>
+                                        <div className="dropdown-item" onClick={() => handleEtymologySelect('Basic')}>Basic</div>
+                                        <div className="dropdown-item" onClick={() => handleEtymologySelect('D')}>D</div>
+                                        <div className="dropdown-item" onClick={() => handleEtymologySelect('F')}>F</div>
+                                        <div className="dropdown-item" onClick={() => handleEtymologySelect('VU')}>VU</div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-center gap-3">
+                        {visibleLetters.map(letter => (
+                            <button
+                                key={letter}
+                                className={`alphabet-btn ${selectedLetter === letter ? 'active' : ''}`}
+                                onClick={() => handleLetterClick(letter)}
+                            >
+                                {letter}
+                            </button>
+                        ))}
+                        {hiddenLetters.length > 0 && (
+                            <button
+                                className="alphabet-btn plus"
+                                onClick={handlePlusClick}
+                            >
+                                {showAllAlphabet ? '-' : '+'}
+                            </button>
+                        )}
+                    </div>
+
+                    {
+                        showAllAlphabet && hiddenLetters.length > 0 && (
+                            <div className="alphabet-expanded fade-in flex flex-wrap justify-center gap-2">
+                                {hiddenLetters.map(letter => (
+                                    <button
+                                        key={letter}
+                                        className={`alphabet-btn ${selectedLetter === letter ? 'active' : ''}`}
+                                        onClick={() => handleLetterClick(letter)}
+                                    >
+                                        {letter}
+                                    </button>
+                                ))}
+                            </div>
+                        )
+                    }
+                </div >
+            </header >
+
+            <main className="flex-1 py-8 px-4">
+                {selectedWord ? (
+                    <div className="flex flex-col items-center w-full">
+                        {isPracticeMode && (
+                            <div className="w-full max-w-3xl mb-4 flex justify-between items-center bg-bg-card p-4 rounded-lg border border-border-color">
+                                <span className="text-text-primary font-medium">
+                                    İnceleme Modu: {practiceIndex + 1} / {practiceQueue.length}
+                                </span>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setShowReportModal(true)}
+                                        className="px-4 py-2 bg-bg-card border border-red-500/30 text-red-500 rounded-lg hover:bg-red-500/10 font-medium transition-colors"
+                                    >
+                                        <i className="fas fa-exclamation-triangle mr-2"></i>
+                                        Bildir
+                                    </button>
+                                    <button
+                                        onClick={handlePrevPracticeWord}
+                                        disabled={practiceIndex === 0}
+                                        className="px-4 py-2 bg-bg-main border border-border-color text-text-primary rounded-lg hover:border-text-primary font-medium disabled:opacity-50 transition-colors"
+                                    >
+                                        <i className="fas fa-arrow-left"></i>
+                                    </button>
+                                    <button
+                                        onClick={handleNextPracticeWord}
+                                        className="px-6 py-2 bg-bg-card border border-border-color text-text-primary rounded-lg hover:border-text-primary font-bold shadow-sm transition-transform transform hover:scale-105"
+                                    >
+                                        Sonraki <i className="fas fa-arrow-right ml-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        <WordDetail
+                            word={selectedWord}
+                            wordList={wordList}
+                            language={language}
+                        />
+                    </div>
+                ) : (
+                    <div className="max-w-7xl mx-auto space-y-6 w-full mb-[2vh]">
+                        {practiceLoading && (
+                            <div className="text-center py-8">
+                                <div className="inline-block w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                                <p>Pratik verileri yükleniyor...</p>
+                            </div>
+                        )}
+
+                        {(searchTerm || selectedLetter) ? (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-xl font-bold text-text-primary">
+                                        {totalResults} {language === 'tr' ? 'sonuç bulundu' : 'results found'}
+                                    </h2>
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-text-secondary">
+                                                {language === 'tr' ? 'Sayfa' : 'Page'} {currentPage} / {totalPages}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {currentResults.map(entry => (
+                                        <div
+                                            key={entry.id || entry.word}
+                                            className="card p-[1.3rem] cursor-pointer hover:bg-bg-card-hover transition-colors fade-in"
+                                            onClick={() => handleResultClick(entry)}
+                                        >
+                                            <div className="card-tag">
+                                                {entry.etymology_type || 'Basic'}
+                                            </div>
+                                            <div className="card-title">
+                                                {entry.word}
+                                            </div>
+                                            <div className="card-description">
+                                                {language === 'tr'
+                                                    ? (entry.meaning_tr || entry.meaning || 'Anlam bulunamadı')
+                                                    : (entry.meaning || 'Meaning not found')}
+                                            </div>
+                                            <div className="card-meta">
+                                                {entry.page && `Sayfa: ${entry.page}`}
+                                                {entry.skeleton && ` | İskelet: ${entry.skeleton}`}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {currentResults.length === 0 && (
+                                    <div className="card p-12 text-center fade-in">
+                                        <i className="fas fa-search text-6xl text-text-secondary mb-6"></i>
+                                        <h3 className="text-2xl font-bold mb-3">{language === 'tr' ? 'Sonuç Bulunamadı' : 'No Results Found'}</h3>
+                                        <p className="text-text-secondary text-lg">
+                                            {language === 'tr' ? 'Arama kriterlerinize uygun kelime bulunamadı.' : 'No words found matching your search criteria.'}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {totalPages > 1 && (
+                                    <div className="flex items-center justify-center gap-2 mt-12 mb-8">
+                                        <button
+                                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                            disabled={currentPage === 1}
+                                            className="bg-bg-card border border-border-color px-4 py-2 rounded-lg disabled:opacity-50 hover:border-text-primary transition-colors"
+                                        >
+                                            <i className="fas fa-chevron-left"></i>
+                                        </button>
+
+                                        {getPaginationNumbers().map(pageNum => (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => setCurrentPage(pageNum)}
+                                                className={`px-4 py-2 rounded-lg transition-colors ${currentPage === pageNum
+                                                    ? 'bg-active-bg text-active-text'
+                                                    : 'bg-bg-card border border-border-color hover:border-text-primary'
+                                                    }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        ))}
+
+                                        <button
+                                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                            disabled={currentPage === totalPages}
+                                            className="bg-bg-card border border-border-color px-4 py-2 rounded-lg disabled:opacity-50 hover:border-text-primary transition-colors"
+                                        >
+                                            <i className="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {randomWords.map(entry => (
+                                    <div
+                                        key={entry.id || entry.word}
+                                        className="card p-[1.3rem] cursor-pointer hover:bg-bg-card-hover transition-colors fade-in"
+                                        onClick={() => handleResultClick(entry)}
+                                    >
+                                        <div className="card-tag">
+                                            {entry.etymology_type || 'Basic'}
+                                        </div>
+                                        <div className="card-title">
+                                            {entry.word}
+                                        </div>
+                                        <div className="card-description">
+                                            {language === 'tr'
+                                                ? (entry.meaning_tr || entry.meaning || 'Anlam bulunamadı')
+                                                : (entry.meaning || 'Meaning not found')}
+                                        </div>
+                                        <div className="card-meta">
+                                            {entry.page && `Sayfa: ${entry.page}`}
+                                            {entry.skeleton && ` | İskelet: ${entry.skeleton}`}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </main>
+
+            <footer className="footer-text text-center py-4">
+                {language === 'tr' ? 'Aristokles yaptı' : 'Made by Aristokles'}
+            </footer>
+        </div >
+    );
+};
+
+export default BetaHome;
