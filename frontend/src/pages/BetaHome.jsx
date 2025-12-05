@@ -441,7 +441,11 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
         if (!adminPassword) return;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/reports?secret=${adminPassword}`);
+            const response = await fetch(`${API_BASE_URL}/api/reports`, {
+                headers: {
+                    'X-Admin-Secret': adminPassword
+                }
+            });
             if (response.ok) {
                 const data = await response.json();
                 setReportsList(data);
@@ -469,7 +473,11 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
         if (!secret) return;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/reports?secret=${secret}`);
+            const response = await fetch(`${API_BASE_URL}/api/reports`, {
+                headers: {
+                    'X-Admin-Secret': secret
+                }
+            });
             if (response.ok) {
                 const reports = await response.json();
                 const blob = new Blob([JSON.stringify(reports, null, 2)], { type: 'application/json' });

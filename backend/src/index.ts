@@ -8,6 +8,7 @@ type D1Database = any;
 
 type Bindings = {
   DB: D1Database
+  ADMIN_SECRET: string
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -16,7 +17,7 @@ const app = new Hono<{ Bindings: Bindings }>()
 app.use('/*', cors({
   origin: '*', // GitHub Pages veya local frontend için
   allowMethods: ['GET', 'POST', 'OPTIONS'],
-  allowHeaders: ['Content-Type'],
+  allowHeaders: ['Content-Type', 'X-Admin-Secret'],
   maxAge: 86400,
 }))
 
@@ -397,12 +398,12 @@ app.post('/api/reports', async (c) => {
   }
 });
 
-// Raporları Listele (GET) - Basit koruma
+// Raporları Listele (GET) - Güvenli
 app.get('/api/reports', async (c) => {
-  const secret = c.req.query('secret');
+  const secret = c.req.header('X-Admin-Secret');
+  const envSecret = c.env.ADMIN_SECRET || 'parola'; // Fallback for dev, but should be set in env
 
-  // Basit bir güvenlik önlemi (Bunu daha sonra environment variable'a taşıyabiliriz)
-  if (secret !== 'parola') {
+  if (secret !== envSecret) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
@@ -418,8 +419,10 @@ app.get('/api/reports', async (c) => {
 
 // Seed Endpoint (Geçici - Veri Yükleme İçin)
 app.post('/api/seed', async (c) => {
-  const secret = c.req.query('secret');
-  if (secret !== 'parola') return c.json({ error: 'Unauthorized' }, 401);
+  const secret = c.req.header('X-Admin-Secret');
+  const envSecret = c.env.ADMIN_SECRET || 'parola';
+
+  if (secret !== envSecret) return c.json({ error: 'Unauthorized' }, 401);
 
   try {
     const words = await c.req.json();
@@ -452,8 +455,10 @@ app.post('/api/seed', async (c) => {
 
 // Tabloyu Temizle Endpoint'i
 app.post('/api/seed/clear', async (c) => {
-  const secret = c.req.query('secret');
-  if (secret !== 'parola') return c.json({ error: 'Unauthorized' }, 401);
+  const secret = c.req.header('X-Admin-Secret');
+  const envSecret = c.env.ADMIN_SECRET || 'parola';
+
+  if (secret !== envSecret) return c.json({ error: 'Unauthorized' }, 401);
 
   try {
     await c.env.DB.prepare("DELETE FROM words").run();
