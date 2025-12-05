@@ -676,61 +676,49 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
             {showReportModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                     <div className="bg-bg-main border border-border-color rounded-lg w-full max-w-md p-6 shadow-2xl relative">
-                        {showSuccessAnimation ? (
-                            <div className="flex flex-col items-center justify-center py-8 fade-in">
-                                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4 animate-bounce">
-                                    <i className="fas fa-check text-white text-3xl"></i>
-                                </div>
-                                <h3 className="text-xl font-bold text-text-primary">Kaydedildi</h3>
-                                <p className="text-text-secondary mt-2">Geri bildiriminiz için teşekkürler.</p>
-                            </div>
-                        ) : (
-                            <>
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-xl font-bold text-text-primary">Hata Bildir</h3>
-                                    <button onClick={() => setShowReportModal(false)} className="text-text-secondary hover:text-text-primary">
-                                        <i className="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <p className="text-text-secondary mb-4">
-                                    "<span className="font-bold text-accent-color">{selectedWordForReport?.word}</span>" kelimesi için hata bildiriyorsunuz.
-                                </p>
-                                <div className="flex gap-2 mb-4">
-                                    <button
-                                        onClick={() => setReportReason('meaning')}
-                                        className={`flex-1 py-2 rounded border ${reportReason === 'meaning' ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-secondary'}`}
-                                    >
-                                        Anlam Hatası
-                                    </button>
-                                    <button
-                                        onClick={() => setReportReason('typo')}
-                                        className={`flex-1 py-2 rounded border ${reportReason === 'typo' ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-secondary'}`}
-                                    >
-                                        Yazım Hatası
-                                    </button>
-                                    <button
-                                        onClick={() => setReportReason('other')}
-                                        className={`flex-1 py-2 rounded border ${reportReason === 'other' ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-secondary'}`}
-                                    >
-                                        Diğer
-                                    </button>
-                                </div>
-                                <textarea
-                                    value={reportDescription}
-                                    onChange={(e) => setReportDescription(e.target.value)}
-                                    placeholder="Lütfen hatayı detaylandırın..."
-                                    className="w-full bg-bg-card border border-border-color rounded p-3 text-text-primary mb-4 h-32 outline-none focus:border-accent-color"
-                                ></textarea>
-                                <div className="flex justify-end gap-2">
-                                    <button onClick={() => setShowReportModal(false)} className="px-4 py-2 text-text-secondary hover:text-text-primary">
-                                        İptal
-                                    </button>
-                                    <button onClick={handleReportSubmit} className="bg-accent-color text-bg-main px-6 py-2 rounded font-bold hover:bg-opacity-90">
-                                        Gönder
-                                    </button>
-                                </div>
-                            </>
-                        )}
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-bold text-text-primary">Hata Bildir</h3>
+                            <button onClick={() => setShowReportModal(false)} className="text-text-secondary hover:text-text-primary">
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <p className="text-text-secondary mb-4">
+                            "<span className="font-bold text-accent-color">{practiceQueue[practiceIndex]?.word}</span>" kelimesi için hata bildiriyorsunuz.
+                        </p>
+                        <div className="flex gap-2 mb-4">
+                            <button
+                                onClick={() => setReportReason('meaning')}
+                                className={`flex-1 py-2 rounded border ${reportReason === 'meaning' ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-secondary'}`}
+                            >
+                                Anlam Hatası
+                            </button>
+                            <button
+                                onClick={() => setReportReason('typo')}
+                                className={`flex-1 py-2 rounded border ${reportReason === 'typo' ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-secondary'}`}
+                            >
+                                Yazım Hatası
+                            </button>
+                            <button
+                                onClick={() => setReportReason('other')}
+                                className={`flex-1 py-2 rounded border ${reportReason === 'other' ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-secondary'}`}
+                            >
+                                Diğer
+                            </button>
+                        </div>
+                        <textarea
+                            value={reportDescription}
+                            onChange={(e) => setReportDescription(e.target.value)}
+                            placeholder="Lütfen hatayı detaylandırın..."
+                            className="w-full bg-bg-card border border-border-color rounded p-3 text-text-primary mb-4 h-32 outline-none focus:border-accent-color"
+                        ></textarea>
+                        <div className="flex justify-end gap-2">
+                            <button onClick={() => setShowReportModal(false)} className="px-4 py-2 text-text-secondary hover:text-text-primary">
+                                İptal
+                            </button>
+                            <button onClick={handleReportSubmit} className="bg-accent-color text-bg-main px-6 py-2 rounded font-bold hover:bg-opacity-90">
+                                Gönder
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -1275,17 +1263,19 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
             }
 
             {/* Toast Notification */}
-            {toast.show && (
-                <div className="fixed bottom-4 right-4 z-50 fade-in">
-                    <div className={`px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 border ${toast.type === 'error'
+            {
+                toast.show && (
+                    <div className="fixed bottom-4 right-4 z-50 fade-in">
+                        <div className={`px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 border ${toast.type === 'error'
                             ? 'bg-red-900/90 border-red-700 text-white'
                             : 'bg-green-900/90 border-green-700 text-white'
-                        }`}>
-                        <i className={`fas ${toast.type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}`}></i>
-                        <span className="font-medium">{toast.message}</span>
+                            }`}>
+                            <i className={`fas ${toast.type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}`}></i>
+                            <span className="font-medium">{toast.message}</span>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </div >
     );
 };
