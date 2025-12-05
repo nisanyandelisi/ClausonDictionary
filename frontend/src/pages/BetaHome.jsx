@@ -57,6 +57,7 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
     const [reportsList, setReportsList] = useState([]);
     const [adminError, setAdminError] = useState('');
     const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+    const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
     const itemsPerPage = 9;
     const allLetters = ['A', 'B', 'C', 'Ç', 'D', 'E', 'F', 'G', 'Ğ', 'H', 'I', 'İ', 'J', 'K', 'L', 'M', 'N', 'O', 'Ö', 'P', 'R', 'S', 'Ş', 'T', 'U', 'Ü', 'V', 'Y', 'Z'];
@@ -417,19 +418,22 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(report),
+                body: JSON.stringify(reportData),
             });
 
             if (response.ok) {
-                alert("Bildiriminiz sunucuya kaydedildi.");
-                setShowReportModal(false);
-                setReportDescription('');
+                setShowSuccessAnimation(true);
+                setTimeout(() => {
+                    setShowSuccessAnimation(false);
+                    setShowReportModal(false);
+                    setReportDescription('');
+                }, 2000);
             } else {
-                alert("Bildirim gönderilirken bir hata oluştu.");
+                alert('Bir hata oluştu, lütfen tekrar deneyin.');
             }
         } catch (error) {
             console.error('Report error:', error);
-            alert("Sunucu hatası.");
+            alert('Sunucu hatası.');
         }
     };
 
@@ -588,44 +592,63 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
 
             {/* Report Modal */}
             {showReportModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 fade-in">
-                    <div className="bg-bg-card border border-border-color rounded-lg shadow-xl max-w-md w-full p-6 text-text-primary">
-                        <h2 className="text-xl font-bold mb-4">Hata Bildir</h2>
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-text-secondary mb-2">Sebep</label>
-                            <select
-                                value={reportReason}
-                                onChange={(e) => setReportReason(e.target.value)}
-                                className="w-full bg-bg-main border border-border-color rounded p-2 text-text-primary outline-none focus:border-text-primary"
-                            >
-                                <option value="meaning">Anlam Hatası</option>
-                                <option value="entry">Giriş/Yazım Hatası</option>
-                                <option value="other">Diğer</option>
-                            </select>
-                        </div>
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-text-secondary mb-2">Açıklama</label>
-                            <textarea
-                                value={reportDescription}
-                                onChange={(e) => setReportDescription(e.target.value)}
-                                className="w-full bg-bg-main border border-border-color rounded p-2 text-text-primary outline-none focus:border-text-primary h-24 resize-none"
-                                placeholder="Hata detaylarını buraya yazın..."
-                            />
-                        </div>
-                        <div className="flex justify-end gap-2">
-                            <button
-                                onClick={() => setShowReportModal(false)}
-                                className="px-4 py-2 text-text-secondary hover:bg-bg-card-hover rounded transition-colors"
-                            >
-                                İptal
-                            </button>
-                            <button
-                                onClick={handleReportSubmit}
-                                className="px-4 py-2 bg-bg-card border border-border-color text-text-primary rounded hover:border-text-primary font-medium transition-colors"
-                            >
-                                Gönder
-                            </button>
-                        </div>
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-bg-main border border-border-color rounded-lg w-full max-w-md p-6 shadow-2xl relative">
+                        {showSuccessAnimation ? (
+                            <div className="flex flex-col items-center justify-center py-8 fade-in">
+                                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4 animate-bounce">
+                                    <i className="fas fa-check text-white text-3xl"></i>
+                                </div>
+                                <h3 className="text-xl font-bold text-text-primary">Kaydedildi</h3>
+                                <p className="text-text-secondary mt-2">Geri bildiriminiz için teşekkürler.</p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-xl font-bold text-text-primary">Hata Bildir</h3>
+                                    <button onClick={() => setShowReportModal(false)} className="text-text-secondary hover:text-text-primary">
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <p className="text-text-secondary mb-4">
+                                    "<span className="font-bold text-accent-color">{selectedWordForReport?.word}</span>" kelimesi için hata bildiriyorsunuz.
+                                </p>
+                                <div className="flex gap-2 mb-4">
+                                    <button
+                                        onClick={() => setReportReason('meaning')}
+                                        className={`flex-1 py-2 rounded border ${reportReason === 'meaning' ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-secondary'}`}
+                                    >
+                                        Anlam Hatası
+                                    </button>
+                                    <button
+                                        onClick={() => setReportReason('typo')}
+                                        className={`flex-1 py-2 rounded border ${reportReason === 'typo' ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-secondary'}`}
+                                    >
+                                        Yazım Hatası
+                                    </button>
+                                    <button
+                                        onClick={() => setReportReason('other')}
+                                        className={`flex-1 py-2 rounded border ${reportReason === 'other' ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-secondary'}`}
+                                    >
+                                        Diğer
+                                    </button>
+                                </div>
+                                <textarea
+                                    value={reportDescription}
+                                    onChange={(e) => setReportDescription(e.target.value)}
+                                    placeholder="Lütfen hatayı detaylandırın..."
+                                    className="w-full bg-bg-card border border-border-color rounded p-3 text-text-primary mb-4 h-32 outline-none focus:border-accent-color"
+                                ></textarea>
+                                <div className="flex justify-end gap-2">
+                                    <button onClick={() => setShowReportModal(false)} className="px-4 py-2 text-text-secondary hover:text-text-primary">
+                                        İptal
+                                    </button>
+                                    <button onClick={handleReportSubmit} className="bg-accent-color text-bg-main px-6 py-2 rounded font-bold hover:bg-opacity-90">
+                                        Gönder
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
