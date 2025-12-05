@@ -40,8 +40,26 @@ yarn-error.log*
 *.sw?
 
 # Seed Data & Scripts
+# Seed Data & Scripts
 seed_data.sql
 seed_part_*
 generate_seed_sql.py
-seed_via_api.py
+# seed_via_api.py <- Enabled for agent access
 count_words.py
+extract_missing.py
+merge_translations.py
+analyze_missing_pages.py
+split_data.py
+translate_parallel.py
+
+# Custom Data & Temp
+Eksik/
+Çeviri/
+venv/
+__pycache__/
+*.pyc
+
+# Local Data Copies
+Data/
+Data_EnglishOnly/
+
