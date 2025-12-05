@@ -821,7 +821,12 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                     {/* Review Mode Button - Sol üstte, modal açar */}
                     <button
                         onClick={() => setShowPracticeModal(true)}
-                        className={`absolute left-4 top-0 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors flex items-center gap-2 ${isPracticeMode ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-primary hover:border-text-primary'}`}
+                        className="absolute left-4 top-0 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors flex items-center gap-2"
+                        style={{
+                            backgroundColor: '#2A2A2A',
+                            color: isPracticeMode ? '#22c55e' : '#ffffff',
+                            borderColor: isPracticeMode ? '#22c55e' : '#3A3A3A'
+                        }}
                         title="İnceleme Modu"
                     >
                         <i className="fas fa-book-reader"></i>
