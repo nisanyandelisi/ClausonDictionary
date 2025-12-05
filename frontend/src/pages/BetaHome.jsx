@@ -389,7 +389,7 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
 
     const startPractice = async () => {
         if (practiceSelectedFiles.length === 0) {
-            alert("Lütfen en az bir dosya seçin.");
+            alert("Lütfen en az bir bölüm seçin.");
             return;
         }
 
@@ -397,37 +397,43 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
         setShowPracticeModal(false);
 
         try {
+            // Seçilen bölümlere göre offset aralığını hesapla
+            // Her bölüm yaklaşık 850-900 kelime içeriyor
+            const WORDS_PER_FILE = 860;
             let allWords = [];
-            for (const fileNum of practiceSelectedFiles) {
-                const fileName = FILE_MAPPING[fileNum];
-                const response = await fetch(`./data/${fileName}`);
-                if (!response.ok) throw new Error(`Failed to load ${fileName}`);
-                const data = await response.json();
-                allWords = [...allWords, ...data];
+
+            for (const fileNum of practiceSelectedFiles.sort((a, b) => a - b)) {
+                const startOffset = (fileNum - 1) * WORDS_PER_FILE;
+                const endOffset = fileNum * WORDS_PER_FILE;
+
+                // API'den bu aralıktaki kelimeleri çek
+                const response = await fetch(`${API_BASE_URL}/api/search?q=baş=&limit=${WORDS_PER_FILE}&offset=${startOffset}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.results) {
+                        allWords = [...allWords, ...data.results];
+                    }
+                }
+            }
+
+            if (allWords.length === 0) {
+                alert("Veri yüklenemedi!");
+                setPracticeLoading(false);
+                return;
             }
 
             // Filter out seen words
             const unseenWords = allWords.filter(w => !seenWords.has(w.word));
 
             if (unseenWords.length === 0) {
-                alert("Seçilen dosyalardaki tüm kelimeler zaten çalışılmış!");
+                alert("Seçilen bölümlerdeki tüm kelimeler zaten çalışılmış!");
                 setPracticeLoading(false);
                 return;
             }
 
-            // Sort by page number (or index if page is missing)
-            const sorted = [...unseenWords].sort((a, b) => {
-                const pageA = parseInt(a.page) || 0;
-                const pageB = parseInt(b.page) || 0;
-                return pageA - pageB;
-            });
-
-            setPracticeQueue(sorted);
+            setPracticeQueue(unseenWords);
             setPracticeIndex(0);
             setIsPracticeMode(true);
-
-            // Navigate to the first word
-            window.location.hash = `#/kelime/${encodeURIComponent(sorted[0].word)}`;
 
         } catch (error) {
             console.error(error);
@@ -446,19 +452,16 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
         if (practiceIndex + 1 >= practiceQueue.length) {
             alert("Tebrikler! Seçilen tüm kelimeleri tamamladınız.");
             setIsPracticeMode(false);
-            window.location.hash = '#/';
+            setPracticeQueue([]);
+            setPracticeIndex(0);
         } else {
-            const nextIndex = practiceIndex + 1;
-            setPracticeIndex(nextIndex);
-            window.location.hash = `#/kelime/${encodeURIComponent(practiceQueue[nextIndex].word)}`;
+            setPracticeIndex(practiceIndex + 1);
         }
     };
 
     const handlePrevPracticeWord = () => {
         if (practiceIndex > 0) {
-            const prevIndex = practiceIndex - 1;
-            setPracticeIndex(prevIndex);
-            window.location.hash = `#/kelime/${encodeURIComponent(practiceQueue[prevIndex].word)}`;
+            setPracticeIndex(practiceIndex - 1);
         }
     };
 
@@ -782,9 +785,9 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                         {language === 'tr' ? '🇹🇷 Türkçe' : '🇬🇧 English'}
                     </button>
 
-                    {/* Review Mode Button - Sol üstte tek buton */}
+                    {/* Review Mode Button - Sol üstte, modal açar */}
                     <button
-                        onClick={startReviewMode}
+                        onClick={() => setShowPracticeModal(true)}
                         className={`absolute left-4 top-0 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors flex items-center gap-2 ${isPracticeMode ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-primary hover:border-text-primary'}`}
                         title="İnceleme Modu"
                     >
@@ -945,7 +948,7 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                 {/* ============================================ */}
                 {/* REVIEW MODE - Tamamen ayrı UI */}
                 {/* ============================================ */}
-                {isPracticeMode ? (
+                {isPracticeMode && practiceQueue.length > 0 ? (
                     <div className="max-w-3xl mx-auto">
                         {/* Review Mode Header */}
                         <div className="flex justify-between items-center mb-6 bg-bg-card p-4 rounded-lg border border-border-color">
@@ -955,75 +958,83 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                                     {language === 'tr' ? 'İnceleme Modu' : 'Review Mode'}
                                 </span>
                                 <span className="text-text-secondary">
-                                    {currentReviewIndex + 1} / {totalWordCount}
+                                    {practiceIndex + 1} / {practiceQueue.length}
                                 </span>
                             </div>
-                            <button
-                                onClick={exitReviewMode}
-                                className="px-4 py-2 bg-bg-main border border-border-color text-text-primary rounded-lg hover:border-red-500 hover:text-red-500 transition-colors"
-                            >
-                                <i className="fas fa-times mr-2"></i>
-                                {language === 'tr' ? 'Çıkış' : 'Exit'}
-                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowReportModal(true)}
+                                    className="px-3 py-2 bg-bg-main border border-red-500/30 text-red-500 rounded-lg hover:bg-red-500/10 transition-colors"
+                                    title="Hata Bildir"
+                                >
+                                    <i className="fas fa-exclamation-triangle"></i>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsPracticeMode(false);
+                                        setPracticeQueue([]);
+                                        setPracticeIndex(0);
+                                    }}
+                                    className="px-4 py-2 bg-bg-main border border-border-color text-text-primary rounded-lg hover:border-red-500 hover:text-red-500 transition-colors"
+                                >
+                                    <i className="fas fa-times mr-2"></i>
+                                    {language === 'tr' ? 'Çıkış' : 'Exit'}
+                                </button>
+                            </div>
                         </div>
 
                         {/* Single Word Display */}
-                        {reviewModeLoading ? (
+                        {practiceLoading ? (
                             <div className="card p-12 text-center">
                                 <div className="w-12 h-12 border-4 border-accent-color border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                                 <p className="text-text-secondary">{language === 'tr' ? 'Yükleniyor...' : 'Loading...'}</p>
                             </div>
-                        ) : reviewModeWord ? (
+                        ) : (
                             <div className="card p-8 fade-in">
                                 <div className="card-tag mb-4">
-                                    {reviewModeWord.etymology_type || 'Basic'}
+                                    {practiceQueue[practiceIndex]?.etymology_type || 'Basic'}
                                 </div>
                                 <h2 className="text-4xl font-bold text-text-primary mb-6">
-                                    {reviewModeWord.word}
+                                    {practiceQueue[practiceIndex]?.word}
                                 </h2>
                                 <div className="text-lg text-text-secondary mb-6 leading-relaxed" dangerouslySetInnerHTML={{
                                     __html: language === 'tr'
-                                        ? (reviewModeWord.meaning_tr || reviewModeWord.meaning || 'Anlam bulunamadı')
-                                        : (reviewModeWord.meaning || 'Meaning not found')
+                                        ? (practiceQueue[practiceIndex]?.meaning_tr || practiceQueue[practiceIndex]?.meaning || 'Anlam bulunamadı')
+                                        : (practiceQueue[practiceIndex]?.meaning || 'Meaning not found')
                                 }}></div>
 
-                                {reviewModeWord.full_entry_text && (
+                                {practiceQueue[practiceIndex]?.full_entry_text && (
                                     <div className="border-t border-border-color pt-6 mt-6">
                                         <p className="text-sm text-text-secondary leading-relaxed" dangerouslySetInnerHTML={{
                                             __html: language === 'tr'
-                                                ? (reviewModeWord.full_entry_text_tr || reviewModeWord.full_entry_text)
-                                                : reviewModeWord.full_entry_text
+                                                ? (practiceQueue[practiceIndex]?.full_entry_text_tr || practiceQueue[practiceIndex]?.full_entry_text)
+                                                : practiceQueue[practiceIndex]?.full_entry_text
                                         }}></p>
                                     </div>
                                 )}
 
-                                {reviewModeWord.page && (
+                                {practiceQueue[practiceIndex]?.page && (
                                     <div className="mt-6 text-sm text-text-secondary">
                                         <i className="fas fa-book mr-2"></i>
-                                        Sayfa: {reviewModeWord.page}
+                                        Sayfa: {practiceQueue[practiceIndex]?.page}
                                     </div>
                                 )}
-                            </div>
-                        ) : (
-                            <div className="card p-12 text-center">
-                                <i className="fas fa-exclamation-circle text-4xl text-text-secondary mb-4"></i>
-                                <p className="text-text-secondary">{language === 'tr' ? 'Kelime bulunamadı' : 'Word not found'}</p>
                             </div>
                         )}
 
                         {/* Navigation Buttons */}
                         <div className="flex justify-center gap-4 mt-8">
                             <button
-                                onClick={handlePrevReviewWord}
-                                disabled={currentReviewIndex === 0}
+                                onClick={handlePrevPracticeWord}
+                                disabled={practiceIndex === 0}
                                 className="bg-bg-card border border-border-color px-8 py-4 rounded-lg disabled:opacity-50 hover:border-text-primary transition-colors flex items-center gap-3 text-lg"
                             >
                                 <i className="fas fa-arrow-left"></i>
                                 {language === 'tr' ? 'Önceki' : 'Previous'}
                             </button>
                             <button
-                                onClick={handleNextReviewWord}
-                                disabled={currentReviewIndex >= totalWordCount - 1}
+                                onClick={handleNextPracticeWord}
+                                disabled={practiceIndex >= practiceQueue.length - 1}
                                 className="bg-accent-color text-bg-main px-8 py-4 rounded-lg font-bold hover:bg-opacity-90 transition-colors flex items-center gap-3 text-lg disabled:opacity-50"
                             >
                                 {language === 'tr' ? 'Sonraki' : 'Next'}
@@ -1156,7 +1167,7 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                         )}
                     </div>
                 )}
-            </main>
+            </main >
 
             <footer className="footer-text text-center py-4 relative">
                 {language === 'tr' ? 'Aristokles yaptı' : 'Made by Aristokles'}
@@ -1169,83 +1180,85 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
             </footer>
 
             {/* Admin Modal */}
-            {showAdminModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-bg-main border border-border-color rounded-lg w-full max-w-4xl max-h-[80vh] flex flex-col shadow-2xl">
-                        <div className="flex justify-between items-center p-4 border-b border-border-color">
-                            <h3 className="text-xl font-bold text-text-primary">Yönetici Paneli</h3>
-                            <button onClick={() => setShowAdminModal(false)} className="text-text-secondary hover:text-text-primary">
-                                <i className="fas fa-times text-xl"></i>
-                            </button>
-                        </div>
+            {
+                showAdminModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                        <div className="bg-bg-main border border-border-color rounded-lg w-full max-w-4xl max-h-[80vh] flex flex-col shadow-2xl">
+                            <div className="flex justify-between items-center p-4 border-b border-border-color">
+                                <h3 className="text-xl font-bold text-text-primary">Yönetici Paneli</h3>
+                                <button onClick={() => setShowAdminModal(false)} className="text-text-secondary hover:text-text-primary">
+                                    <i className="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
 
-                        <div className="p-6 overflow-y-auto flex-1">
-                            {!isAdminLoggedIn ? (
-                                <form onSubmit={handleAdminLogin} className="flex flex-col gap-4 max-w-sm mx-auto mt-10">
-                                    <div className="text-center mb-4">
-                                        <i className="fas fa-user-shield text-4xl text-accent-color mb-2"></i>
-                                        <p className="text-text-secondary">Lütfen yönetici şifresini girin.</p>
-                                    </div>
-                                    <input
-                                        type="password"
-                                        value={adminPassword}
-                                        onChange={(e) => setAdminPassword(e.target.value)}
-                                        placeholder="Şifre"
-                                        className="bg-bg-card border border-border-color rounded px-4 py-2 text-text-primary focus:border-accent-color outline-none"
-                                        autoFocus
-                                    />
-                                    {adminError && <p className="text-red-500 text-sm">{adminError}</p>}
-                                    <button type="submit" className="bg-accent-color text-bg-main font-bold py-2 rounded hover:bg-opacity-90 transition-colors">
-                                        Giriş Yap
-                                    </button>
-                                </form>
-                            ) : (
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h4 className="text-lg font-bold">Raporlar ({reportsList.length})</h4>
-                                        <button onClick={downloadReports} className="bg-bg-card border border-border-color px-3 py-1 rounded hover:border-text-primary transition-colors text-sm">
-                                            <i className="fas fa-download mr-2"></i> İndir
-                                        </button>
-                                    </div>
-
-                                    {reportsList.length === 0 ? (
-                                        <p className="text-text-secondary text-center py-8">Henüz rapor yok.</p>
-                                    ) : (
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full text-left border-collapse">
-                                                <thead>
-                                                    <tr className="border-b border-border-color text-text-secondary text-sm">
-                                                        <th className="p-2">Tarih</th>
-                                                        <th className="p-2">Kelime</th>
-                                                        <th className="p-2">Sayfa</th>
-                                                        <th className="p-2">Sebep</th>
-                                                        <th className="p-2">Açıklama</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {reportsList.map((report, idx) => (
-                                                        <tr key={idx} className="border-b border-border-color hover:bg-bg-card transition-colors">
-                                                            <td className="p-2 text-sm text-text-secondary whitespace-nowrap">
-                                                                {new Date(report.timestamp).toLocaleString('tr-TR')}
-                                                            </td>
-                                                            <td className="p-2 font-bold text-accent-color">{report.word}</td>
-                                                            <td className="p-2 text-sm">{report.page}</td>
-                                                            <td className="p-2 text-sm capitalize">{report.reason}</td>
-                                                            <td className="p-2 text-sm text-text-secondary max-w-xs truncate" title={report.description}>
-                                                                {report.description}
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
+                            <div className="p-6 overflow-y-auto flex-1">
+                                {!isAdminLoggedIn ? (
+                                    <form onSubmit={handleAdminLogin} className="flex flex-col gap-4 max-w-sm mx-auto mt-10">
+                                        <div className="text-center mb-4">
+                                            <i className="fas fa-user-shield text-4xl text-accent-color mb-2"></i>
+                                            <p className="text-text-secondary">Lütfen yönetici şifresini girin.</p>
                                         </div>
-                                    )}
-                                </div>
-                            )}
+                                        <input
+                                            type="password"
+                                            value={adminPassword}
+                                            onChange={(e) => setAdminPassword(e.target.value)}
+                                            placeholder="Şifre"
+                                            className="bg-bg-card border border-border-color rounded px-4 py-2 text-text-primary focus:border-accent-color outline-none"
+                                            autoFocus
+                                        />
+                                        {adminError && <p className="text-red-500 text-sm">{adminError}</p>}
+                                        <button type="submit" className="bg-accent-color text-bg-main font-bold py-2 rounded hover:bg-opacity-90 transition-colors">
+                                            Giriş Yap
+                                        </button>
+                                    </form>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h4 className="text-lg font-bold">Raporlar ({reportsList.length})</h4>
+                                            <button onClick={downloadReports} className="bg-bg-card border border-border-color px-3 py-1 rounded hover:border-text-primary transition-colors text-sm">
+                                                <i className="fas fa-download mr-2"></i> İndir
+                                            </button>
+                                        </div>
+
+                                        {reportsList.length === 0 ? (
+                                            <p className="text-text-secondary text-center py-8">Henüz rapor yok.</p>
+                                        ) : (
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left border-collapse">
+                                                    <thead>
+                                                        <tr className="border-b border-border-color text-text-secondary text-sm">
+                                                            <th className="p-2">Tarih</th>
+                                                            <th className="p-2">Kelime</th>
+                                                            <th className="p-2">Sayfa</th>
+                                                            <th className="p-2">Sebep</th>
+                                                            <th className="p-2">Açıklama</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {reportsList.map((report, idx) => (
+                                                            <tr key={idx} className="border-b border-border-color hover:bg-bg-card transition-colors">
+                                                                <td className="p-2 text-sm text-text-secondary whitespace-nowrap">
+                                                                    {new Date(report.timestamp).toLocaleString('tr-TR')}
+                                                                </td>
+                                                                <td className="p-2 font-bold text-accent-color">{report.word}</td>
+                                                                <td className="p-2 text-sm">{report.page}</td>
+                                                                <td className="p-2 text-sm capitalize">{report.reason}</td>
+                                                                <td className="p-2 text-sm text-text-secondary max-w-xs truncate" title={report.description}>
+                                                                    {report.description}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </div >
     );
 };
