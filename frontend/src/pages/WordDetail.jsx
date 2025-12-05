@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import RichTextParser from '../components/RichTextParser';
+import api from '../utils/api';
 
 const WordDetail = ({ word, wordList, language = 'tr' }) => {
     const [entries, setEntries] = useState([]);
@@ -13,8 +14,7 @@ const WordDetail = ({ word, wordList, language = 'tr' }) => {
             try {
                 console.log(`[WordDetail.jsx] Fetching details for word: "${word}"`);
                 // Use the 'tam=' operator for exact match
-                const response = await fetch(`/api/search?q=tam=${encodeURIComponent(word)}`);
-                const data = await response.json();
+                const data = await api.get(`/api/search?q=tam=${encodeURIComponent(word)}`);
 
                 if (data.results && data.results.length > 0) {
                     setEntries(data.results);
