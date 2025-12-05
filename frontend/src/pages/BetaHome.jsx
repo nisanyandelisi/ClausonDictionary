@@ -687,253 +687,282 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                         </p>
                         <div className="flex gap-2 mb-4">
                             <button
-                        <div className="flex gap-2 mb-4">
-                                <button
-                                    onClick={() => setReportReason('meaning')}
-                                    className="flex-1 py-2 rounded border transition-colors"
-                                    style={{
-                                        backgroundColor: reportReason === 'meaning' ? '#ffffff' : '#1e1e1e',
-                                        color: reportReason === 'meaning' ? '#121212' : '#a0a0a0',
-                                        borderColor: reportReason === 'meaning' ? '#ffffff' : '#3a3a3a'
-                                    }}
-                                >
-                                    Anlam Hatası
-                                </button>
-                                <button
-                                    onClick={() => setReportReason('typo')}
-                                    className="flex-1 py-2 rounded border transition-colors"
-                                    style={{
-                                        backgroundColor: reportReason === 'typo' ? '#ffffff' : '#1e1e1e',
-                                        color: reportReason === 'typo' ? '#121212' : '#a0a0a0',
-                                        borderColor: reportReason === 'typo' ? '#ffffff' : '#3a3a3a'
-                                    }}
-                                >
-                                    Yazım Hatası
-                                </button>
-                                <button
-                                    onClick={() => setReportReason('other')}
-                                    className="flex-1 py-2 rounded border transition-colors"
-                                    style={{
-                                        backgroundColor: reportReason === 'other' ? '#ffffff' : '#1e1e1e',
-                                        color: reportReason === 'other' ? '#121212' : '#a0a0a0',
-                                        borderColor: reportReason === 'other' ? '#ffffff' : '#3a3a3a'
-                                    }}
-                                >
-                                    Diğer
-                                </button>
-                            </div>
-                            <textarea
-                                value={reportDescription}
-                                onChange={(e) => setReportDescription(e.target.value)}
-                                placeholder="Lütfen hatayı detaylandırın..."
-                                className="w-full rounded p-3 mb-4 h-32 outline-none"
+                                onClick={() => setReportReason('meaning')}
+                                className="flex-1 py-2 rounded border transition-colors"
                                 style={{
-                                    backgroundColor: '#2A2A2A',
-                                    borderColor: '#3a3a3a',
-                                    borderWidth: '1px',
-                                    color: '#ffffff'
+                                    backgroundColor: reportReason === 'meaning' ? '#ffffff' : '#1e1e1e',
+                                    color: reportReason === 'meaning' ? '#121212' : '#a0a0a0',
+                                    borderColor: reportReason === 'meaning' ? '#ffffff' : '#3a3a3a'
                                 }}
-                            ></textarea>
-                            <div className="flex justify-end gap-2">
-                                <button
-                                    onClick={() => setShowReportModal(false)}
-                                    className="px-4 py-2 transition-colors"
-                                    style={{ color: '#a0a0a0' }}
-                                    onMouseOver={(e) => e.currentTarget.style.color = '#ffffff'}
-                                    onMouseOut={(e) => e.currentTarget.style.color = '#a0a0a0'}
-                                >
-                                    İptal
-                                </button>
-                                <button
-                                    onClick={handleReportSubmit}
-                                    className="px-6 py-2 rounded font-bold transition-colors"
-                                    style={{
-                                        backgroundColor: '#22c55e',
-                                        color: '#ffffff'
-                                    }}
-                                >
-                                    Gönder
-                                </button>
-                            </div>
+                            >
+                                Anlam Hatası
+                            </button>
+                            <button
+                                onClick={() => setReportReason('typo')}
+                                className="flex-1 py-2 rounded border transition-colors"
+                                style={{
+                                    backgroundColor: reportReason === 'typo' ? '#ffffff' : '#1e1e1e',
+                                    color: reportReason === 'typo' ? '#121212' : '#a0a0a0',
+                                    borderColor: reportReason === 'typo' ? '#ffffff' : '#3a3a3a'
+                                }}
+                            >
+                                Yazım Hatası
+                            </button>
+                            <button
+                                onClick={() => setReportReason('other')}
+                                className="flex-1 py-2 rounded border transition-colors"
+                                style={{
+                                    backgroundColor: reportReason === 'other' ? '#ffffff' : '#1e1e1e',
+                                    color: reportReason === 'other' ? '#121212' : '#a0a0a0',
+                                    borderColor: reportReason === 'other' ? '#ffffff' : '#3a3a3a'
+                                }}
+                            >
+                                Diğer
+                            </button>
+                        </div>
+                        <textarea
+                            value={reportDescription}
+                            onChange={(e) => setReportDescription(e.target.value)}
+                            placeholder="Lütfen hatayı detaylandırın..."
+                            className="w-full rounded p-3 mb-4 h-32 outline-none"
+                            style={{
+                                backgroundColor: '#2A2A2A',
+                                borderColor: '#3a3a3a',
+                                borderWidth: '1px',
+                                color: '#ffffff'
+                            }}
+                        ></textarea>
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => setShowReportModal(false)}
+                                className="px-4 py-2 transition-colors"
+                                style={{ color: '#a0a0a0' }}
+                                onMouseOver={(e) => e.currentTarget.style.color = '#ffffff'}
+                                onMouseOut={(e) => e.currentTarget.style.color = '#a0a0a0'}
+                            >
+                                İptal
+                            </button>
+                            <button
+                                onClick={handleReportSubmit}
+                                className="px-6 py-2 rounded font-bold transition-colors border"
+                                style={{
+                                    backgroundColor: '#1e1e1e',
+                                    borderColor: '#3a3a3a',
+                                    color: '#e0e0e0'
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.borderColor = '#ffffff';
+                                    e.currentTarget.style.color = '#ffffff';
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.borderColor = '#3a3a3a';
+                                    e.currentTarget.style.color = '#e0e0e0';
+                                }}
+                            >
+                                Gönder
+                            </button>
                         </div>
                     </div>
+                </div>
             )}
 
-                    <header className={headerClass}>
-                        {/* Mobile Header Row */}
-                        <div className="flex md:hidden justify-between items-center px-4 py-3 mb-2">
-                            <div className="flex items-center gap-3 cursor-pointer" onClick={handleLogoClick}>
-                                <img src="./logo.png" alt="Clauson" className="h-10 w-auto" />
-                                <div className="flex flex-col">
-                                    <span className="text-[1.35rem] font-bold text-text-primary leading-none font-inter">Clauson</span>
-                                    <span className="text-[13px] text-text-secondary font-inter">{language === 'tr' ? 'Türkçe Etimoloji Sözlüğü' : 'Turkish Etymological Dictionary'}</span>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {/* Language Toggle */}
-                                <button
-                                    onClick={() => setLanguage(language === 'tr' ? 'en' : 'tr')}
-                                    className="px-2 py-1 rounded-md bg-bg-card border border-border-color text-sm font-medium"
-                                    title={language === 'tr' ? 'Switch to English' : 'Türkçe\'ye geç'}
-                                >
-                                    {language === 'tr' ? '🇹🇷 TR' : '🇬🇧 EN'}
-                                </button>
-                                <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-text-primary">
-                                    <i className="fas fa-bars text-2xl"></i>
-                                </button>
-                            </div>
+            <header className={headerClass}>
+                {/* Mobile Header Row */}
+                <div className="flex md:hidden justify-between items-center px-4 py-3 mb-2">
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={handleLogoClick}>
+                        <img src="./logo.png" alt="Clauson" className="h-10 w-auto" />
+                        <div className="flex flex-col">
+                            <span className="text-[1.35rem] font-bold text-text-primary leading-none font-inter">Clauson</span>
+                            <span className="text-[13px] text-text-secondary font-inter">{language === 'tr' ? 'Türkçe Etimoloji Sözlüğü' : 'Turkish Etymological Dictionary'}</span>
                         </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {/* Language Toggle */}
+                        <button
+                            onClick={() => setLanguage(language === 'tr' ? 'en' : 'tr')}
+                            className="px-2 py-1 rounded-md bg-bg-card border border-border-color text-sm font-medium"
+                            title={language === 'tr' ? 'Switch to English' : 'Türkçe\'ye geç'}
+                        >
+                            {language === 'tr' ? '🇹🇷 TR' : '🇬🇧 EN'}
+                        </button>
+                        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-text-primary">
+                            <i className="fas fa-bars text-2xl"></i>
+                        </button>
+                    </div>
+                </div>
 
-                        {/* Mobile Menu */}
-                        {mobileMenuOpen && (
-                            <div className="md:hidden px-4 mb-4 fade-in">
-                                <button
-                                    onClick={() => {
-                                        setShowPracticeModal(true);
-                                        setMobileMenuOpen(false);
-                                    }}
-                                    className="w-full py-2 bg-bg-card border border-border-color text-text-primary rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-bg-card-hover transition-colors"
-                                >
-                                    <i className="fas fa-graduation-cap"></i>
-                                    {language === 'tr' ? 'İnceleme Modu' : 'Review Mode'}
-                                </button>
+                {/* Mobile Menu */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden px-4 mb-4 fade-in">
+                        <button
+                            onClick={() => {
+                                setShowPracticeModal(true);
+                                setMobileMenuOpen(false);
+                            }}
+                            className="w-full py-2 bg-bg-card border border-border-color text-text-primary rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-bg-card-hover transition-colors"
+                        >
+                            <i className="fas fa-graduation-cap"></i>
+                            {language === 'tr' ? 'İnceleme Modu' : 'Review Mode'}
+                        </button>
+                    </div>
+                )}
+
+                {/* Desktop Header Row */}
+                <div className={`hidden md:flex justify-center items-center mb-8 ${selectedWord ? 'mt-[10px]' : ''} relative`}>
+                    {/* Language Toggle - Desktop */}
+                    <button
+                        onClick={() => setLanguage(language === 'tr' ? 'en' : 'tr')}
+                        className="absolute right-4 top-0 px-3 py-1.5 rounded-lg bg-bg-card border border-border-color text-sm font-medium hover:border-text-primary transition-colors"
+                        title={language === 'tr' ? 'Switch to English' : 'Türkçe\'ye geç'}
+                    >
+                        {language === 'tr' ? '🇹🇷 Türkçe' : '🇬🇧 English'}
+                    </button>
+
+                    {/* Review Mode Button - Sol üstte, modal açar */}
+                    <button
+                        onClick={() => setShowPracticeModal(true)}
+                        className={`absolute left-4 top-0 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors flex items-center gap-2 ${isPracticeMode ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-primary hover:border-text-primary'}`}
+                        title="İnceleme Modu"
+                    >
+                        <i className="fas fa-book-reader"></i>
+                        {language === 'tr' ? 'İncele' : 'Review'}
+                    </button>
+
+                    <div
+                        onClick={handleLogoClick}
+                        className={`flex items-center cursor-pointer ${selectedWord ? '' : 'flex-col justify-center'}`}
+                    >
+                        <img
+                            src="./logo.png"
+                            alt="Clauson Logo"
+                            className={`${selectedWord ? 'h-12' : 'h-32'} w-auto transition-all duration-300`}
+                        />
+
+                        {!selectedWord && (
+                            <div className="text-center mt-4">
+                                <h1 className="text-5xl font-bold text-text-primary mb-2 font-inter">Clauson</h1>
+                                <p className="text-lg text-text-secondary font-inter">{language === 'tr' ? 'Türkçe Etimoloji Sözlüğü' : 'Turkish Etymological Dictionary'}</p>
                             </div>
                         )}
 
-                        {/* Desktop Header Row */}
-                        <div className={`hidden md:flex justify-center items-center mb-8 ${selectedWord ? 'mt-[10px]' : ''} relative`}>
-                            {/* Language Toggle - Desktop */}
+                        {selectedWord && (
+                            <div className="ml-4 text-left">
+                                <h1 className="text-xl font-bold text-text-primary font-inter leading-tight">Clauson</h1>
+                                <p className="text-sm text-text-secondary font-inter">{language === 'tr' ? 'Türkçe Etimoloji Sözlüğü' : 'Turkish Etymological Dictionary'}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className={searchBarContainerClass}>
+                    <div className={`search-bar ${selectedWord ? 'p-[0.3rem]' : 'p-[0.3rem] md:p-[0.9rem]'} ${searchBarInnerClass} mx-auto`}>
+                        <div className="flex items-center justify-center">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                                placeholder={language === 'tr' ? "Bir kelime veya anlam arayın..." : "Search for a word or meaning..."}
+                                className="flex-1 bg-transparent text-text-primary placeholder-text-secondary text-lg outline-none px-4 font-inter"
+                            />
                             <button
-                                onClick={() => setLanguage(language === 'tr' ? 'en' : 'tr')}
-                                className="absolute right-4 top-0 px-3 py-1.5 rounded-lg bg-bg-card border border-border-color text-sm font-medium hover:border-text-primary transition-colors"
-                                title={language === 'tr' ? 'Switch to English' : 'Türkçe\'ye geç'}
+                                onClick={handleRandomWord}
+                                className="p-2 text-text-primary hover:text-text-secondary transition-colors mr-1"
+                                title="Random Word"
                             >
-                                {language === 'tr' ? '🇹🇷 Türkçe' : '🇬🇧 English'}
+                                <i className="fas fa-dice text-xl"></i>
                             </button>
-
-                            {/* Review Mode Button - Sol üstte, modal açar */}
                             <button
-                                onClick={() => setShowPracticeModal(true)}
-                                className={`absolute left-4 top-0 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors flex items-center gap-2 ${isPracticeMode ? 'bg-accent-color text-bg-main border-accent-color' : 'bg-bg-card border-border-color text-text-primary hover:border-text-primary'}`}
-                                title="İnceleme Modu"
+                                onClick={handleSearch}
+                                className="p-2 text-text-primary hover:text-text-secondary transition-colors"
                             >
-                                <i className="fas fa-book-reader"></i>
-                                {language === 'tr' ? 'İncele' : 'Review'}
+                                <i className="fas fa-search text-xl"></i>
                             </button>
+                        </div>
+                    </div>
+                </div>
 
-                            <div
-                                onClick={handleLogoClick}
-                                className={`flex items-center cursor-pointer ${selectedWord ? '' : 'flex-col justify-center'}`}
-                            >
-                                <img
-                                    src="./logo.png"
-                                    alt="Clauson Logo"
-                                    className={`${selectedWord ? 'h-12' : 'h-32'} w-auto transition-all duration-300`}
-                                />
-
-                                {!selectedWord && (
-                                    <div className="text-center mt-4">
-                                        <h1 className="text-5xl font-bold text-text-primary mb-2 font-inter">Clauson</h1>
-                                        <p className="text-lg text-text-secondary font-inter">{language === 'tr' ? 'Türkçe Etimoloji Sözlüğü' : 'Turkish Etymological Dictionary'}</p>
-                                    </div>
-                                )}
-
-                                {selectedWord && (
-                                    <div className="ml-4 text-left">
-                                        <h1 className="text-xl font-bold text-text-primary font-inter leading-tight">Clauson</h1>
-                                        <p className="text-sm text-text-secondary font-inter">{language === 'tr' ? 'Türkçe Etimoloji Sözlüğü' : 'Turkish Etymological Dictionary'}</p>
-                                    </div>
-                                )}
+                {/* Filters - Visible on Desktop, Hidden on Mobile (unless menu open) */}
+                <div className={`flex flex-col items-center justify-center gap-4 mt-4 px-4 fade-in ${mobileMenuOpen ? 'block' : 'hidden md:flex'}`}>
+                    <div className="flex flex-wrap items-center justify-center gap-4">
+                        <div className="toggle-control">
+                            <div className={`toggle-option ${searchScope === 'word' ? 'active' : ''}`} onClick={() => setSearchScope('word')}>
+                                {language === 'tr' ? 'Kelime' : 'Word'}
+                            </div>
+                            <div className={`toggle-option ${searchScope === 'meaning' ? 'active' : ''}`} onClick={() => setSearchScope('meaning')}>
+                                {language === 'tr' ? 'Açıklama' : 'Meaning'}
                             </div>
                         </div>
 
-                        {/* Search Bar */}
-                        <div className={searchBarContainerClass}>
-                            <div className={`search-bar ${selectedWord ? 'p-[0.3rem]' : 'p-[0.3rem] md:p-[0.9rem]'} ${searchBarInnerClass} mx-auto`}>
-                                <div className="flex items-center justify-center">
-                                    <input
-                                        type="text"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                                        placeholder={language === 'tr' ? "Bir kelime veya anlam arayın..." : "Search for a word or meaning..."}
-                                        className="flex-1 bg-transparent text-text-primary placeholder-text-secondary text-lg outline-none px-4 font-inter"
-                                    />
-                                    <button
-                                        onClick={handleRandomWord}
-                                        className="p-2 text-text-primary hover:text-text-secondary transition-colors mr-1"
-                                        title="Random Word"
-                                    >
-                                        <i className="fas fa-dice text-xl"></i>
-                                    </button>
-                                    <button
-                                        onClick={handleSearch}
-                                        className="p-2 text-text-primary hover:text-text-secondary transition-colors"
-                                    >
-                                        <i className="fas fa-search text-xl"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        {/* İnceleme Modu butonu sol üstte, burada değil! */}
 
-                        {/* Filters - Visible on Desktop, Hidden on Mobile (unless menu open) */}
-                        <div className={`flex flex-col items-center justify-center gap-4 mt-4 px-4 fade-in ${mobileMenuOpen ? 'block' : 'hidden md:flex'}`}>
-                            <div className="flex flex-wrap items-center justify-center gap-4">
-                                <div className="toggle-control">
-                                    <div className={`toggle-option ${searchScope === 'word' ? 'active' : ''}`} onClick={() => setSearchScope('word')}>
-                                        {language === 'tr' ? 'Kelime' : 'Word'}
-                                    </div>
-                                    <div className={`toggle-option ${searchScope === 'meaning' ? 'active' : ''}`} onClick={() => setSearchScope('meaning')}>
-                                        {language === 'tr' ? 'Açıklama' : 'Meaning'}
-                                    </div>
+                        {!isPracticeMode && (
+                            <div className="flex gap-2">
+                                <div className="relative" ref={dropdownRef}>
+                                    <button
+                                        className="filter-button"
+                                        onClick={() => setShowDropdown(!showDropdown)}
+                                    >
+                                        <span>{getModeDisplayName(searchMode)}</span>
+                                        <i className="fas fa-chevron-down text-xs"></i>
+                                    </button>
+                                    {showDropdown && (
+                                        <div className="dropdown-menu">
+                                            <div className="dropdown-item" onClick={() => handleDropdownSelect('contains')}>{language === 'tr' ? 'İçerir' : 'Contains'}</div>
+                                            <div className="dropdown-item" onClick={() => handleDropdownSelect('startsWith')}>{language === 'tr' ? 'İle Başlar' : 'Starts With'}</div>
+                                            <div className="dropdown-item" onClick={() => handleDropdownSelect('endsWith')}>{language === 'tr' ? 'İle Biter' : 'Ends With'}</div>
+                                            <div className="dropdown-item" onClick={() => handleDropdownSelect('exact')}>{language === 'tr' ? 'Tam Eşleşme' : 'Exact Match'}</div>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* İnceleme Modu butonu sol üstte, burada değil! */}
-
-                                {!isPracticeMode && (
-                                    <div className="flex gap-2">
-                                        <div className="relative" ref={dropdownRef}>
-                                            <button
-                                                className="filter-button"
-                                                onClick={() => setShowDropdown(!showDropdown)}
-                                            >
-                                                <span>{getModeDisplayName(searchMode)}</span>
-                                                <i className="fas fa-chevron-down text-xs"></i>
-                                            </button>
-                                            {showDropdown && (
-                                                <div className="dropdown-menu">
-                                                    <div className="dropdown-item" onClick={() => handleDropdownSelect('contains')}>{language === 'tr' ? 'İçerir' : 'Contains'}</div>
-                                                    <div className="dropdown-item" onClick={() => handleDropdownSelect('startsWith')}>{language === 'tr' ? 'İle Başlar' : 'Starts With'}</div>
-                                                    <div className="dropdown-item" onClick={() => handleDropdownSelect('endsWith')}>{language === 'tr' ? 'İle Biter' : 'Ends With'}</div>
-                                                    <div className="dropdown-item" onClick={() => handleDropdownSelect('exact')}>{language === 'tr' ? 'Tam Eşleşme' : 'Exact Match'}</div>
-                                                </div>
-                                            )}
+                                <div className="relative" ref={etymologyDropdownRef}>
+                                    <button
+                                        className="filter-button"
+                                        onClick={() => setShowEtymologyDropdown(!showEtymologyDropdown)}
+                                    >
+                                        <span>{getEtymologyDisplayName(etymologyFilter)}</span>
+                                        <i className="fas fa-chevron-down text-xs"></i>
+                                    </button>
+                                    {showEtymologyDropdown && (
+                                        <div className="dropdown-menu">
+                                            <div className="dropdown-item" onClick={() => handleEtymologySelect('all')}>{language === 'tr' ? 'Tüm Tipler' : 'All Types'}</div>
+                                            <div className="dropdown-item" onClick={() => handleEtymologySelect('Basic')}>Basic</div>
+                                            <div className="dropdown-item" onClick={() => handleEtymologySelect('D')}>D</div>
+                                            <div className="dropdown-item" onClick={() => handleEtymologySelect('F')}>F</div>
+                                            <div className="dropdown-item" onClick={() => handleEtymologySelect('VU')}>VU</div>
                                         </div>
-
-                                        <div className="relative" ref={etymologyDropdownRef}>
-                                            <button
-                                                className="filter-button"
-                                                onClick={() => setShowEtymologyDropdown(!showEtymologyDropdown)}
-                                            >
-                                                <span>{getEtymologyDisplayName(etymologyFilter)}</span>
-                                                <i className="fas fa-chevron-down text-xs"></i>
-                                            </button>
-                                            {showEtymologyDropdown && (
-                                                <div className="dropdown-menu">
-                                                    <div className="dropdown-item" onClick={() => handleEtymologySelect('all')}>{language === 'tr' ? 'Tüm Tipler' : 'All Types'}</div>
-                                                    <div className="dropdown-item" onClick={() => handleEtymologySelect('Basic')}>Basic</div>
-                                                    <div className="dropdown-item" onClick={() => handleEtymologySelect('D')}>D</div>
-                                                    <div className="dropdown-item" onClick={() => handleEtymologySelect('F')}>F</div>
-                                                    <div className="dropdown-item" onClick={() => handleEtymologySelect('VU')}>VU</div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
+                        )}
+                    </div>
 
-                            <div className="flex flex-wrap items-center justify-center gap-3">
-                                {visibleLetters.map(letter => (
+                    <div className="flex flex-wrap items-center justify-center gap-3">
+                        {visibleLetters.map(letter => (
+                            <button
+                                key={letter}
+                                className={`alphabet-btn ${selectedLetter === letter ? 'active' : ''}`}
+                                onClick={() => handleLetterClick(letter)}
+                            >
+                                {letter}
+                            </button>
+                        ))}
+                        {hiddenLetters.length > 0 && (
+                            <button
+                                className="alphabet-btn plus"
+                                onClick={handlePlusClick}
+                            >
+                                {showAllAlphabet ? '-' : '+'}
+                            </button>
+                        )}
+                    </div>
+
+                    {
+                        showAllAlphabet && hiddenLetters.length > 0 && (
+                            <div className="alphabet-expanded fade-in flex flex-wrap justify-center gap-2">
+                                {hiddenLetters.map(letter => (
                                     <button
                                         key={letter}
                                         className={`alphabet-btn ${selectedLetter === letter ? 'active' : ''}`}
@@ -942,378 +971,356 @@ const BetaHome = ({ isLoading, wordList, selectedWord, language, setLanguage }) 
                                         {letter}
                                     </button>
                                 ))}
-                                {hiddenLetters.length > 0 && (
-                                    <button
-                                        className="alphabet-btn plus"
-                                        onClick={handlePlusClick}
-                                    >
-                                        {showAllAlphabet ? '-' : '+'}
-                                    </button>
-                                )}
-                            </div>
-
-                            {
-                                showAllAlphabet && hiddenLetters.length > 0 && (
-                                    <div className="alphabet-expanded fade-in flex flex-wrap justify-center gap-2">
-                                        {hiddenLetters.map(letter => (
-                                            <button
-                                                key={letter}
-                                                className={`alphabet-btn ${selectedLetter === letter ? 'active' : ''}`}
-                                                onClick={() => handleLetterClick(letter)}
-                                            >
-                                                {letter}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )
-                            }
-                        </div >
-                    </header >
-
-                    <main className="flex-1 py-8 px-4">
-                        {/* ============================================ */}
-                        {/* REVIEW MODE - Tamamen ayrı UI */}
-                        {/* ============================================ */}
-                        {isPracticeMode && practiceQueue.length > 0 ? (
-                            <div className="max-w-3xl mx-auto">
-                                {/* Review Mode Header */}
-                                <div className="flex justify-between items-center mb-6 bg-bg-card p-4 rounded-lg border border-border-color">
-                                    <div className="flex items-center gap-4">
-                                        <span className="text-text-primary font-bold text-lg">
-                                            <i className="fas fa-book-reader mr-2 text-accent-color"></i>
-                                            {language === 'tr' ? 'İnceleme Modu' : 'Review Mode'}
-                                        </span>
-                                        <span className="text-text-secondary">
-                                            {practiceIndex + 1} / {practiceQueue.length}
-                                        </span>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setShowReportModal(true)}
-                                            className="px-3 py-2 bg-bg-main border border-red-500/30 text-red-500 rounded-lg hover:bg-red-500/10 transition-colors"
-                                            title="Hata Bildir"
-                                        >
-                                            <i className="fas fa-exclamation-triangle"></i>
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setIsPracticeMode(false);
-                                                setPracticeQueue([]);
-                                                setPracticeIndex(0);
-                                            }}
-                                            className="px-4 py-2 bg-bg-main border border-border-color text-text-primary rounded-lg hover:border-red-500 hover:text-red-500 transition-colors"
-                                        >
-                                            <i className="fas fa-times mr-2"></i>
-                                            {language === 'tr' ? 'Çıkış' : 'Exit'}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Single Word Display */}
-                                {practiceLoading ? (
-                                    <div className="card p-12 text-center">
-                                        <div className="w-12 h-12 border-4 border-accent-color border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                                        <p className="text-text-secondary">{language === 'tr' ? 'Yükleniyor...' : 'Loading...'}</p>
-                                    </div>
-                                ) : (
-                                    <div className="card p-8 fade-in">
-                                        <div className="card-tag mb-4">
-                                            {practiceQueue[practiceIndex]?.etymology_type || 'Basic'}
-                                        </div>
-                                        <h2 className="text-4xl font-bold text-text-primary mb-6">
-                                            {practiceQueue[practiceIndex]?.word}
-                                        </h2>
-                                        <div className="text-lg text-text-secondary mb-6 leading-relaxed" dangerouslySetInnerHTML={{
-                                            __html: language === 'tr'
-                                                ? (practiceQueue[practiceIndex]?.meaning_tr || practiceQueue[practiceIndex]?.meaning || 'Anlam bulunamadı')
-                                                : (practiceQueue[practiceIndex]?.meaning || 'Meaning not found')
-                                        }}></div>
-
-                                        {practiceQueue[practiceIndex]?.full_entry_text && (
-                                            <div className="border-t border-border-color pt-6 mt-6">
-                                                <p className="text-sm text-text-secondary leading-relaxed" dangerouslySetInnerHTML={{
-                                                    __html: language === 'tr'
-                                                        ? (practiceQueue[practiceIndex]?.full_entry_text_tr || practiceQueue[practiceIndex]?.full_entry_text)
-                                                        : practiceQueue[practiceIndex]?.full_entry_text
-                                                }}></p>
-                                            </div>
-                                        )}
-
-                                        {practiceQueue[practiceIndex]?.page && (
-                                            <div className="mt-6 text-sm text-text-secondary">
-                                                <i className="fas fa-book mr-2"></i>
-                                                Sayfa: {practiceQueue[practiceIndex]?.page}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Navigation Buttons */}
-                                <div className="flex flex-row justify-center items-center gap-6 mt-8 w-full">
-                                    <button
-                                        onClick={handlePrevPracticeWord}
-                                        disabled={practiceIndex === 0}
-                                        className="border rounded-lg transition-colors flex items-center gap-2 disabled:opacity-30"
-                                        style={{
-                                            backgroundColor: '#1e1e1e',
-                                            borderColor: '#3a3a3a',
-                                            color: '#e0e0e0',
-                                            padding: '12px 24px'
-                                        }}
-                                    >
-                                        <i className="fas fa-arrow-left"></i>
-                                        <span>{language === 'tr' ? 'Önceki' : 'Previous'}</span>
-                                    </button>
-                                    <button
-                                        onClick={handleNextPracticeWord}
-                                        disabled={practiceIndex >= practiceQueue.length - 1}
-                                        className="border rounded-lg transition-colors flex items-center gap-2 disabled:opacity-30"
-                                        style={{
-                                            backgroundColor: '#1e1e1e',
-                                            borderColor: '#3a3a3a',
-                                            color: '#e0e0e0',
-                                            padding: '12px 24px'
-                                        }}
-                                    >
-                                        <span>{language === 'tr' ? 'Sonraki' : 'Next'}</span>
-                                        <i className="fas fa-arrow-right"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        ) : selectedWord ? (
-                            /* Normal Word Detail View */
-                            <div className="flex flex-col items-center w-full">
-                                <WordDetail
-                                    word={selectedWord}
-                                    wordList={wordList}
-                                    language={language}
-                                />
-                            </div>
-                        ) : (
-                            /* Normal Search Results / Random Words */
-                            <div className="max-w-7xl mx-auto space-y-6 w-full mb-[2vh]">
-                                {(searchTerm || selectedLetter) ? (
-                                    <>
-                                        <div className="flex items-center justify-between">
-                                            <h2 className="text-xl font-bold text-text-primary">
-                                                {totalResults} {language === 'tr' ? 'sonuç bulundu' : 'results found'}
-                                            </h2>
-                                            {totalPages > 1 && (
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm text-text-secondary">
-                                                        {language === 'tr' ? 'Sayfa' : 'Page'} {currentPage} / {totalPages}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            {currentResults.map(entry => (
-                                                <div
-                                                    key={entry.id || entry.word}
-                                                    className="card p-[1.3rem] cursor-pointer hover:bg-bg-card-hover transition-colors fade-in"
-                                                    onClick={() => handleResultClick(entry)}
-                                                >
-                                                    <div className="card-tag">
-                                                        {entry.etymology_type || 'Basic'}
-                                                    </div>
-                                                    <div className="card-title">
-                                                        {entry.word}
-                                                    </div>
-                                                    <div className="card-description">
-                                                        {language === 'tr'
-                                                            ? (entry.meaning_tr || entry.meaning || 'Anlam bulunamadı')
-                                                            : (entry.meaning || 'Meaning not found')}
-                                                    </div>
-                                                    <div className="card-meta">
-                                                        {entry.page && `Sayfa: ${entry.page}`}
-                                                        {entry.skeleton && ` | İskelet: ${entry.skeleton}`}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {currentResults.length === 0 && (
-                                            <div className="card p-12 text-center fade-in">
-                                                <i className="fas fa-search text-6xl text-text-secondary mb-6"></i>
-                                                <h3 className="text-2xl font-bold mb-3">{language === 'tr' ? 'Sonuç Bulunamadı' : 'No Results Found'}</h3>
-                                                <p className="text-text-secondary text-lg">
-                                                    {language === 'tr' ? 'Arama kriterlerinize uygun kelime bulunamadı.' : 'No words found matching your search criteria.'}
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {totalPages > 1 && (
-                                            <div className="flex items-center justify-center gap-2 mt-12 mb-8">
-                                                <button
-                                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                                    disabled={currentPage === 1}
-                                                    className="bg-bg-card border border-border-color px-4 py-2 rounded-lg disabled:opacity-50 hover:border-text-primary transition-colors"
-                                                >
-                                                    <i className="fas fa-chevron-left"></i>
-                                                </button>
-
-                                                {getPaginationNumbers().map(pageNum => (
-                                                    <button
-                                                        key={pageNum}
-                                                        onClick={() => setCurrentPage(pageNum)}
-                                                        className={`px-4 py-2 rounded-lg transition-colors ${currentPage === pageNum
-                                                            ? 'bg-active-bg text-active-text'
-                                                            : 'bg-bg-card border border-border-color hover:border-text-primary'
-                                                            }`}
-                                                    >
-                                                        {pageNum}
-                                                    </button>
-                                                ))}
-
-                                                <button
-                                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                                    disabled={currentPage === totalPages}
-                                                    className="bg-bg-card border border-border-color px-4 py-2 rounded-lg disabled:opacity-50 hover:border-text-primary transition-colors"
-                                                >
-                                                    <i className="fas fa-chevron-right"></i>
-                                                </button>
-                                            </div>
-                                        )}
-                                    </>
-                                ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        {randomWords.map(entry => (
-                                            <div
-                                                key={entry.id || entry.word}
-                                                className="card p-[1.3rem] cursor-pointer hover:bg-bg-card-hover transition-colors fade-in"
-                                                onClick={() => handleResultClick(entry)}
-                                            >
-                                                <div className="card-tag">
-                                                    {entry.etymology_type || 'Basic'}
-                                                </div>
-                                                <div className="card-title">
-                                                    {entry.word}
-                                                </div>
-                                                <div className="card-description">
-                                                    {language === 'tr'
-                                                        ? (entry.meaning_tr || entry.meaning || 'Anlam bulunamadı')
-                                                        : (entry.meaning || 'Meaning not found')}
-                                                </div>
-                                                <div className="card-meta">
-                                                    {entry.page && `Sayfa: ${entry.page}`}
-                                                    {entry.skeleton && ` | İskelet: ${entry.skeleton}`}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </main >
-
-                    <footer className="footer-text text-center py-4 relative">
-                        {language === 'tr' ? 'Aristokles yaptı' : 'Made by Aristokles'}
-                        <button
-                            onClick={() => setShowAdminModal(true)}
-                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs text-text-secondary opacity-30 hover:opacity-100 transition-opacity"
-                        >
-                            <i className="fas fa-lock"></i>
-                        </button>
-                    </footer>
-
-                    {/* Admin Modal */}
-                    {
-                        showAdminModal && (
-                            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                                <div className="bg-bg-main border border-border-color rounded-lg w-full max-w-4xl max-h-[80vh] flex flex-col shadow-2xl">
-                                    <div className="flex justify-between items-center p-4 border-b border-border-color">
-                                        <h3 className="text-xl font-bold text-text-primary">Yönetici Paneli</h3>
-                                        <button onClick={() => setShowAdminModal(false)} className="text-text-secondary hover:text-text-primary">
-                                            <i className="fas fa-times text-xl"></i>
-                                        </button>
-                                    </div>
-
-                                    <div className="p-6 overflow-y-auto flex-1">
-                                        {!isAdminLoggedIn ? (
-                                            <form onSubmit={handleAdminLogin} className="flex flex-col gap-4 max-w-sm mx-auto mt-10">
-                                                <div className="text-center mb-4">
-                                                    <i className="fas fa-user-shield text-4xl text-accent-color mb-2"></i>
-                                                    <p className="text-text-secondary">Lütfen yönetici şifresini girin.</p>
-                                                </div>
-                                                <input
-                                                    type="password"
-                                                    value={adminPassword}
-                                                    onChange={(e) => setAdminPassword(e.target.value)}
-                                                    placeholder="Şifre"
-                                                    className="bg-bg-card border border-border-color rounded px-4 py-2 text-text-primary focus:border-accent-color outline-none"
-                                                    autoFocus
-                                                />
-                                                {adminError && <p className="text-red-500 text-sm">{adminError}</p>}
-                                                <button type="submit" className="bg-accent-color text-bg-main font-bold py-2 rounded hover:bg-opacity-90 transition-colors">
-                                                    Giriş Yap
-                                                </button>
-                                            </form>
-                                        ) : (
-                                            <div className="space-y-4">
-                                                <div className="flex justify-between items-center mb-4">
-                                                    <h4 className="text-lg font-bold">Raporlar ({reportsList.length})</h4>
-                                                    <button onClick={downloadReports} className="bg-bg-card border border-border-color px-3 py-1 rounded hover:border-text-primary transition-colors text-sm">
-                                                        <i className="fas fa-download mr-2"></i> İndir
-                                                    </button>
-                                                </div>
-
-                                                {reportsList.length === 0 ? (
-                                                    <p className="text-text-secondary text-center py-8">Henüz rapor yok.</p>
-                                                ) : (
-                                                    <div className="overflow-x-auto">
-                                                        <table className="w-full text-left border-collapse">
-                                                            <thead>
-                                                                <tr className="border-b border-border-color text-text-secondary text-sm">
-                                                                    <th className="p-2">Tarih</th>
-                                                                    <th className="p-2">Kelime</th>
-                                                                    <th className="p-2">Sayfa</th>
-                                                                    <th className="p-2">Sebep</th>
-                                                                    <th className="p-2">Açıklama</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {reportsList.map((report, idx) => (
-                                                                    <tr key={idx} className="border-b border-border-color hover:bg-bg-card transition-colors">
-                                                                        <td className="p-2 text-sm text-text-secondary whitespace-nowrap">
-                                                                            {new Date(report.timestamp).toLocaleString('tr-TR')}
-                                                                        </td>
-                                                                        <td className="p-2 font-bold text-accent-color">{report.word}</td>
-                                                                        <td className="p-2 text-sm">{report.page}</td>
-                                                                        <td className="p-2 text-sm capitalize">{report.reason}</td>
-                                                                        <td className="p-2 text-sm text-text-secondary max-w-xs truncate" title={report.description}>
-                                                                            {report.description}
-                                                                        </td>
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                    }
-
-                    {/* Toast Notification */}
-                    {
-                        toast.show && (
-                            <div className="fixed bottom-4 right-4 z-50 fade-in">
-                                <div className={`px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 border ${toast.type === 'error'
-                                    ? 'bg-red-900/90 border-red-700 text-white'
-                                    : 'bg-green-900/90 border-green-700 text-white'
-                                    }`}>
-                                    <i className={`fas ${toast.type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}`}></i>
-                                    <span className="font-medium">{toast.message}</span>
-                                </div>
                             </div>
                         )
                     }
                 </div >
-            );
+            </header >
+
+            <main className="flex-1 py-8 px-4">
+                {/* ============================================ */}
+                {/* REVIEW MODE - Tamamen ayrı UI */}
+                {/* ============================================ */}
+                {isPracticeMode && practiceQueue.length > 0 ? (
+                    <div className="max-w-3xl mx-auto">
+                        {/* Review Mode Header */}
+                        <div className="flex justify-between items-center mb-6 bg-bg-card p-4 rounded-lg border border-border-color">
+                            <div className="flex items-center gap-4">
+                                <span className="text-text-primary font-bold text-lg">
+                                    <i className="fas fa-book-reader mr-2 text-accent-color"></i>
+                                    {language === 'tr' ? 'İnceleme Modu' : 'Review Mode'}
+                                </span>
+                                <span className="text-text-secondary">
+                                    {practiceIndex + 1} / {practiceQueue.length}
+                                </span>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowReportModal(true)}
+                                    className="px-3 py-2 bg-bg-main border border-red-500/30 text-red-500 rounded-lg hover:bg-red-500/10 transition-colors"
+                                    title="Hata Bildir"
+                                >
+                                    <i className="fas fa-exclamation-triangle"></i>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsPracticeMode(false);
+                                        setPracticeQueue([]);
+                                        setPracticeIndex(0);
+                                    }}
+                                    className="px-4 py-2 bg-bg-main border border-border-color text-text-primary rounded-lg hover:border-red-500 hover:text-red-500 transition-colors"
+                                >
+                                    <i className="fas fa-times mr-2"></i>
+                                    {language === 'tr' ? 'Çıkış' : 'Exit'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Single Word Display */}
+                        {practiceLoading ? (
+                            <div className="card p-12 text-center">
+                                <div className="w-12 h-12 border-4 border-accent-color border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                                <p className="text-text-secondary">{language === 'tr' ? 'Yükleniyor...' : 'Loading...'}</p>
+                            </div>
+                        ) : (
+                            <div className="card p-8 fade-in">
+                                <div className="card-tag mb-4">
+                                    {practiceQueue[practiceIndex]?.etymology_type || 'Basic'}
+                                </div>
+                                <h2 className="text-4xl font-bold text-text-primary mb-6">
+                                    {practiceQueue[practiceIndex]?.word}
+                                </h2>
+                                <div className="text-lg text-text-secondary mb-6 leading-relaxed" dangerouslySetInnerHTML={{
+                                    __html: language === 'tr'
+                                        ? (practiceQueue[practiceIndex]?.meaning_tr || practiceQueue[practiceIndex]?.meaning || 'Anlam bulunamadı')
+                                        : (practiceQueue[practiceIndex]?.meaning || 'Meaning not found')
+                                }}></div>
+
+                                {practiceQueue[practiceIndex]?.full_entry_text && (
+                                    <div className="border-t border-border-color pt-6 mt-6">
+                                        <p className="text-sm text-text-secondary leading-relaxed" dangerouslySetInnerHTML={{
+                                            __html: language === 'tr'
+                                                ? (practiceQueue[practiceIndex]?.full_entry_text_tr || practiceQueue[practiceIndex]?.full_entry_text)
+                                                : practiceQueue[practiceIndex]?.full_entry_text
+                                        }}></p>
+                                    </div>
+                                )}
+
+                                {practiceQueue[practiceIndex]?.page && (
+                                    <div className="mt-6 text-sm text-text-secondary">
+                                        <i className="fas fa-book mr-2"></i>
+                                        Sayfa: {practiceQueue[practiceIndex]?.page}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Navigation Buttons */}
+                        <div className="flex flex-row justify-center items-center gap-6 mt-8 w-full">
+                            <button
+                                onClick={handlePrevPracticeWord}
+                                disabled={practiceIndex === 0}
+                                className="border rounded-lg transition-colors flex items-center gap-2 disabled:opacity-30"
+                                style={{
+                                    backgroundColor: '#1e1e1e',
+                                    borderColor: '#3a3a3a',
+                                    color: '#e0e0e0',
+                                    padding: '12px 24px'
+                                }}
+                            >
+                                <i className="fas fa-arrow-left"></i>
+                                <span>{language === 'tr' ? 'Önceki' : 'Previous'}</span>
+                            </button>
+                            <button
+                                onClick={handleNextPracticeWord}
+                                disabled={practiceIndex >= practiceQueue.length - 1}
+                                className="border rounded-lg transition-colors flex items-center gap-2 disabled:opacity-30"
+                                style={{
+                                    backgroundColor: '#1e1e1e',
+                                    borderColor: '#3a3a3a',
+                                    color: '#e0e0e0',
+                                    padding: '12px 24px'
+                                }}
+                            >
+                                <span>{language === 'tr' ? 'Sonraki' : 'Next'}</span>
+                                <i className="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                ) : selectedWord ? (
+                    /* Normal Word Detail View */
+                    <div className="flex flex-col items-center w-full">
+                        <WordDetail
+                            word={selectedWord}
+                            wordList={wordList}
+                            language={language}
+                        />
+                    </div>
+                ) : (
+                    /* Normal Search Results / Random Words */
+                    <div className="max-w-7xl mx-auto space-y-6 w-full mb-[2vh]">
+                        {(searchTerm || selectedLetter) ? (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-xl font-bold text-text-primary">
+                                        {totalResults} {language === 'tr' ? 'sonuç bulundu' : 'results found'}
+                                    </h2>
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-text-secondary">
+                                                {language === 'tr' ? 'Sayfa' : 'Page'} {currentPage} / {totalPages}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {currentResults.map(entry => (
+                                        <div
+                                            key={entry.id || entry.word}
+                                            className="card p-[1.3rem] cursor-pointer hover:bg-bg-card-hover transition-colors fade-in"
+                                            onClick={() => handleResultClick(entry)}
+                                        >
+                                            <div className="card-tag">
+                                                {entry.etymology_type || 'Basic'}
+                                            </div>
+                                            <div className="card-title">
+                                                {entry.word}
+                                            </div>
+                                            <div className="card-description">
+                                                {language === 'tr'
+                                                    ? (entry.meaning_tr || entry.meaning || 'Anlam bulunamadı')
+                                                    : (entry.meaning || 'Meaning not found')}
+                                            </div>
+                                            <div className="card-meta">
+                                                {entry.page && `Sayfa: ${entry.page}`}
+                                                {entry.skeleton && ` | İskelet: ${entry.skeleton}`}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {currentResults.length === 0 && (
+                                    <div className="card p-12 text-center fade-in">
+                                        <i className="fas fa-search text-6xl text-text-secondary mb-6"></i>
+                                        <h3 className="text-2xl font-bold mb-3">{language === 'tr' ? 'Sonuç Bulunamadı' : 'No Results Found'}</h3>
+                                        <p className="text-text-secondary text-lg">
+                                            {language === 'tr' ? 'Arama kriterlerinize uygun kelime bulunamadı.' : 'No words found matching your search criteria.'}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {totalPages > 1 && (
+                                    <div className="flex items-center justify-center gap-2 mt-12 mb-8">
+                                        <button
+                                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                            disabled={currentPage === 1}
+                                            className="bg-bg-card border border-border-color px-4 py-2 rounded-lg disabled:opacity-50 hover:border-text-primary transition-colors"
+                                        >
+                                            <i className="fas fa-chevron-left"></i>
+                                        </button>
+
+                                        {getPaginationNumbers().map(pageNum => (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => setCurrentPage(pageNum)}
+                                                className={`px-4 py-2 rounded-lg transition-colors ${currentPage === pageNum
+                                                    ? 'bg-active-bg text-active-text'
+                                                    : 'bg-bg-card border border-border-color hover:border-text-primary'
+                                                    }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        ))}
+
+                                        <button
+                                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                            disabled={currentPage === totalPages}
+                                            className="bg-bg-card border border-border-color px-4 py-2 rounded-lg disabled:opacity-50 hover:border-text-primary transition-colors"
+                                        >
+                                            <i className="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {randomWords.map(entry => (
+                                    <div
+                                        key={entry.id || entry.word}
+                                        className="card p-[1.3rem] cursor-pointer hover:bg-bg-card-hover transition-colors fade-in"
+                                        onClick={() => handleResultClick(entry)}
+                                    >
+                                        <div className="card-tag">
+                                            {entry.etymology_type || 'Basic'}
+                                        </div>
+                                        <div className="card-title">
+                                            {entry.word}
+                                        </div>
+                                        <div className="card-description">
+                                            {language === 'tr'
+                                                ? (entry.meaning_tr || entry.meaning || 'Anlam bulunamadı')
+                                                : (entry.meaning || 'Meaning not found')}
+                                        </div>
+                                        <div className="card-meta">
+                                            {entry.page && `Sayfa: ${entry.page}`}
+                                            {entry.skeleton && ` | İskelet: ${entry.skeleton}`}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </main >
+
+            <footer className="footer-text text-center py-4 relative">
+                {language === 'tr' ? 'Aristokles yaptı' : 'Made by Aristokles'}
+                <button
+                    onClick={() => setShowAdminModal(true)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs text-text-secondary opacity-30 hover:opacity-100 transition-opacity"
+                >
+                    <i className="fas fa-lock"></i>
+                </button>
+            </footer>
+
+            {/* Admin Modal */}
+            {
+                showAdminModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                        <div className="bg-bg-main border border-border-color rounded-lg w-full max-w-4xl max-h-[80vh] flex flex-col shadow-2xl">
+                            <div className="flex justify-between items-center p-4 border-b border-border-color">
+                                <h3 className="text-xl font-bold text-text-primary">Yönetici Paneli</h3>
+                                <button onClick={() => setShowAdminModal(false)} className="text-text-secondary hover:text-text-primary">
+                                    <i className="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+
+                            <div className="p-6 overflow-y-auto flex-1">
+                                {!isAdminLoggedIn ? (
+                                    <form onSubmit={handleAdminLogin} className="flex flex-col gap-4 max-w-sm mx-auto mt-10">
+                                        <div className="text-center mb-4">
+                                            <i className="fas fa-user-shield text-4xl text-accent-color mb-2"></i>
+                                            <p className="text-text-secondary">Lütfen yönetici şifresini girin.</p>
+                                        </div>
+                                        <input
+                                            type="password"
+                                            value={adminPassword}
+                                            onChange={(e) => setAdminPassword(e.target.value)}
+                                            placeholder="Şifre"
+                                            className="bg-bg-card border border-border-color rounded px-4 py-2 text-text-primary focus:border-accent-color outline-none"
+                                            autoFocus
+                                        />
+                                        {adminError && <p className="text-red-500 text-sm">{adminError}</p>}
+                                        <button type="submit" className="bg-accent-color text-bg-main font-bold py-2 rounded hover:bg-opacity-90 transition-colors">
+                                            Giriş Yap
+                                        </button>
+                                    </form>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h4 className="text-lg font-bold">Raporlar ({reportsList.length})</h4>
+                                            <button onClick={downloadReports} className="bg-bg-card border border-border-color px-3 py-1 rounded hover:border-text-primary transition-colors text-sm">
+                                                <i className="fas fa-download mr-2"></i> İndir
+                                            </button>
+                                        </div>
+
+                                        {reportsList.length === 0 ? (
+                                            <p className="text-text-secondary text-center py-8">Henüz rapor yok.</p>
+                                        ) : (
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left border-collapse">
+                                                    <thead>
+                                                        <tr className="border-b border-border-color text-text-secondary text-sm">
+                                                            <th className="p-2">Tarih</th>
+                                                            <th className="p-2">Kelime</th>
+                                                            <th className="p-2">Sayfa</th>
+                                                            <th className="p-2">Sebep</th>
+                                                            <th className="p-2">Açıklama</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {reportsList.map((report, idx) => (
+                                                            <tr key={idx} className="border-b border-border-color hover:bg-bg-card transition-colors">
+                                                                <td className="p-2 text-sm text-text-secondary whitespace-nowrap">
+                                                                    {new Date(report.timestamp).toLocaleString('tr-TR')}
+                                                                </td>
+                                                                <td className="p-2 font-bold text-accent-color">{report.word}</td>
+                                                                <td className="p-2 text-sm">{report.page}</td>
+                                                                <td className="p-2 text-sm capitalize">{report.reason}</td>
+                                                                <td className="p-2 text-sm text-text-secondary max-w-xs truncate" title={report.description}>
+                                                                    {report.description}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Toast Notification */}
+            {
+                toast.show && (
+                    <div className="fixed bottom-4 right-4 z-50 fade-in">
+                        <div className={`px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 border ${toast.type === 'error'
+                            ? 'bg-red-900/90 border-red-700 text-white'
+                            : 'bg-green-900/90 border-green-700 text-white'
+                            }`}>
+                            <i className={`fas ${toast.type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}`}></i>
+                            <span className="font-medium">{toast.message}</span>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
+    );
 };
 
-            export default BetaHome;
+export default BetaHome;
